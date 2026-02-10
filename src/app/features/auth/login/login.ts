@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services/auth';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-login',
@@ -23,8 +24,9 @@ export class Login {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router:  Router,
-    private route: ActivatedRoute
+    private router: Router,
+    private route: ActivatedRoute,
+    private toastr: ToastrService
   ) {
     this.loginForm = this.fb.group({
       studentEmail: ['', [Validators.required, Validators.email]],
@@ -32,20 +34,26 @@ export class Login {
     });
 
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
-    this.sessionExpired = this. route.snapshot.queryParams['expired'] === 'true';
+    this.sessionExpired = this.route.snapshot.queryParams['expired'] === 'true';
+    
+    if (this.sessionExpired) {
+      this.toastr.warning('Your session has expired. Please login again.', 'Session Expired');
+    }
     
     // Check for OAuth errors
     const oauthError = this.route.snapshot.queryParams['error'];
     if (oauthError) {
-      this. errorMessage = oauthError;
+      this.errorMessage = oauthError;
+      this.toastr.error(oauthError, 'OAuth Error');
     }
   }
 
   onSubmit(): void {
     if (this.loginForm.invalid) {
-      Object.keys(this. loginForm.controls).forEach(key => {
+      Object.keys(this.loginForm.controls).forEach(key => {
         this.loginForm.get(key)?.markAsTouched();
       });
+      this.toastr.warning('Please fill in all required fields correctly', 'Validation Error');
       return;
     }
 
@@ -53,19 +61,20 @@ export class Login {
     this.errorMessage = '';
 
     const credentials = {
-      studentEmail:  this.loginForm. get('studentEmail')?.value. trim().toLowerCase(),
-      password: this. loginForm.get('password')?.value
+      studentEmail: this.loginForm.get('studentEmail')?.value.trim().toLowerCase(),
+      password: this.loginForm.get('password')?.value
     };
 
-    console.log('Attempting login with:', credentials. studentEmail);
+    console.log('Attempting login with:', credentials.studentEmail);
 
-    this.authService. login(credentials).subscribe({
-      next:  (response) => {
+    this.authService.login(credentials).subscribe({
+      next: (response) => {
         this.isLoading = false;
         console.log('Login response:', response);
         
         if (response.success && response.user) {
-          console.log('User role:', response.user. role);
+          console.log('User role:', response.user.role);
+          this.toastr.success(`Welcome back, ${response.user.studentName}!`, 'Login Successful');
           
           // ✅ Redirect based on role
           if (response.user.role === 'ADMIN') {
@@ -76,12 +85,14 @@ export class Login {
             this.router.navigate([this.returnUrl]);
           }
         } else {
-          if (response.message?. includes('not verified')) {
+          if (response.message?.includes('not verified')) {
+            this.toastr.info('Please verify your email to continue', 'Email Verification Required');
             this.router.navigate(['/verify-otp'], {
-              queryParams: { email:  credentials.studentEmail }
+              queryParams: { email: credentials.studentEmail }
             });
           } else {
             this.errorMessage = response.message || 'Login failed';
+            this.toastr.error(this.errorMessage, 'Login Failed');
           }
         }
       },
@@ -89,11 +100,11 @@ export class Login {
         this.isLoading = false;
         console.error('Login error:', error);
         
-        if (error.error?. errors) {
+        if (error.error?.errors) {
           const errors = error.error.errors;
           const errorMessages = Object.keys(errors).map(key => `${key}: ${errors[key]}`);
-          this.errorMessage = errorMessages. join(', ');
-        } else if (error.error?. message) {
+          this.errorMessage = errorMessages.join(', ');
+        } else if (error.error?.message) {
           this.errorMessage = error.error.message;
         } else if (error.status === 401) {
           this.errorMessage = 'Invalid email or password';
@@ -102,6 +113,7 @@ export class Login {
         } else {
           this.errorMessage = 'Login failed. Please try again.';
         }
+        this.toastr.error(this.errorMessage, 'Login Failed');
       }
     });
   }

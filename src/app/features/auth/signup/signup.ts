@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-signup',
@@ -32,9 +33,10 @@ export class Signup {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private toastr: ToastrService
   ) {
-    this. signupForm = this.fb.group({
+    this.signupForm = this.fb.group({
       studentName: ['', [Validators.required, Validators.minLength(3)]],
       studentEmail: ['', [Validators.required, Validators.email]],
       password:  ['', [Validators.required, Validators.minLength(8)]],
@@ -50,8 +52,8 @@ export class Signup {
 
   // ✅ Google Signup Method
   signupWithGoogle(): void {
-    this. isGoogleLoading = true;
-    this.authService. loginWithGoogle();  // Same endpoint - backend handles both
+    this.isGoogleLoading = true;
+    this.authService.loginWithGoogle();  // Same endpoint - backend handles both
   }
 
   nextStep(): void {
@@ -64,14 +66,17 @@ export class Signup {
       if (control?.invalid) valid = false;
     });
 
-    if (this.signupForm. get('password')?.value !== this.signupForm.get('confirmPassword')?.value) {
-      this. errorMessage = 'Passwords do not match';
+    if (this.signupForm.get('password')?.value !== this.signupForm.get('confirmPassword')?.value) {
+      this.errorMessage = 'Passwords do not match';
+      this.toastr.error('Passwords do not match', 'Validation Error');
       return;
     }
 
     if (valid) {
-      this. errorMessage = '';
+      this.errorMessage = '';
       this.currentStep = 2;
+    } else {
+      this.toastr.warning('Please fill in all required fields correctly', 'Validation Error');
     }
   }
 
@@ -80,29 +85,35 @@ export class Signup {
   }
 
   onSubmit(): void {
-    if (this.signupForm. invalid) return;
+    if (this.signupForm.invalid) {
+      this.toastr.warning('Please complete all required fields', 'Validation Error');
+      return;
+    }
 
     this.isLoading = true;
     this.errorMessage = '';
 
     const formData = { ...this.signupForm.value };
-    delete formData. confirmPassword;
+    delete formData.confirmPassword;
     formData.year = parseInt(formData.year);
 
     this.authService.signUp(formData).subscribe({
-      next:  (response) => {
+      next: (response) => {
         this.isLoading = false;
         if (response.success) {
-          this.router. navigate(['/verify-otp'], {
-            queryParams:  { email: formData.studentEmail }
+          this.toastr.success('Registration successful! Please verify your email.', 'Success');
+          this.router.navigate(['/verify-otp'], {
+            queryParams: { email: formData.studentEmail }
           });
         } else {
           this.errorMessage = response.message || 'Registration failed';
+          this.toastr.error(this.errorMessage, 'Registration Failed');
         }
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.error?.message || 'Registration failed.  Please try again.';
+        this.errorMessage = error.error?.message || 'Registration failed. Please try again.';
+        this.toastr.error(this.errorMessage, 'Registration Failed');
       }
     });
   }
