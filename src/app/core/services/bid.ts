@@ -67,8 +67,8 @@ export class BidService {
     return this.http.post(`${this.apiUrl}/stall/${stallId}/declare-winner`, {});
   }
 
-  // Helper:  Map any bid format to Bid[]
-  private mapToBids(items:  any[]): Bid[] {
+  // Helper: Map any bid format to Bid[]
+  private mapToBids(items: any[]): Bid[] {
     if (!items || ! Array.isArray(items)) return [];
     
     return items.map((item, index) => ({
