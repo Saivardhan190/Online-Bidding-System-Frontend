@@ -39,24 +39,23 @@ export class ForgotPassword {
     this.errorMessage = '';
     this.successMessage = '';
 
-    this.authService.forgotPassword(this. forgotForm.value).subscribe({
+    this.authService.forgotPassword(this.forgotForm.value).subscribe({
       next: (response) => {
         this.isLoading = false;
         if (response.success) {
-          this. successMessage = 'OTP sent successfully!';
-          this.toastr.success('OTP has been sent to your email!', 'Email Sent');
-          this.toastr.info('Redirecting to reset password page...', 'Info');
+          this.successMessage = 'OTP sent successfully!';
+          this.toastr.success('OTP sent to your email. Redirecting to reset password...', 'Email Sent', { timeOut: 2000 });
           setTimeout(() => {
             this.router.navigate(['/reset-password'], {
-              queryParams:  { email: this.forgotForm. get('studentEmail')?.value }
+              queryParams: { email: this.forgotForm.get('studentEmail')?.value }
             });
           }, 1500);
         } else {
-          this. errorMessage = response. message || 'Failed to send OTP';
+          this.errorMessage = response.message || 'Failed to send OTP';
           this.toastr.error(this.errorMessage, 'Request Failed');
         }
       },
-      error:  (error) => {
+      error: (error) => {
         this.isLoading = false;
         const errorMsg = error.error?.message || 'Email not found. Please check and try again.';
         this.errorMessage = errorMsg;

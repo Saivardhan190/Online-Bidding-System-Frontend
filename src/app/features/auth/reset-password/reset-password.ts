@@ -155,17 +155,16 @@ export class ResetPassword implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.authService. resendResetOtp(this.email).subscribe({
+    this.authService.resendResetOtp(this.email).subscribe({
       next: () => {
         this.isLoading = false;
-        this.toastr.success('OTP has been resent to your email!', 'OTP Resent');
-        this.toastr.info('Please check your email for the new OTP', 'Info');
+        this.toastr.success('OTP resent to your email. Please check your inbox.', 'OTP Resent');
         this.countdown = 60;
         this.startCountdown();
       },
       error: (error) => {
         this.isLoading = false;
-        const errorMsg = error.error?. message || 'Failed to resend OTP';
+        const errorMsg = error.error?.message || 'Failed to resend OTP';
         this.errorMessage = errorMsg;
         this.toastr.error(errorMsg, 'Error');
       }

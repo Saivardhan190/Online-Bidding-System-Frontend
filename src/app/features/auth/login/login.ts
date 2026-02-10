@@ -76,20 +76,25 @@ export class Login {
           console.log('User role:', response.user.role);
           this.toastr.success(`Welcome back, ${response.user.studentName}!`, 'Login Successful');
           
-          // ✅ Redirect based on role
-          if (response.user.role === 'ADMIN') {
-            console.log('Redirecting to admin dashboard');
-            this.router.navigate(['/admin']);
-          } else {
-            console.log('Redirecting to user dashboard');
-            this.router.navigate([this.returnUrl]);
-          }
+          // ✅ Redirect based on role with a slight delay to show the toast
+          const userRole = response.user.role;
+          setTimeout(() => {
+            if (userRole === 'ADMIN') {
+              console.log('Redirecting to admin dashboard');
+              this.router.navigate(['/admin']);
+            } else {
+              console.log('Redirecting to user dashboard');
+              this.router.navigate([this.returnUrl]);
+            }
+          }, 500);
         } else {
           if (response.message?.includes('not verified')) {
             this.toastr.info('Please verify your email to continue', 'Email Verification Required');
-            this.router.navigate(['/verify-otp'], {
-              queryParams: { email: credentials.studentEmail }
-            });
+            setTimeout(() => {
+              this.router.navigate(['/verify-otp'], {
+                queryParams: { email: credentials.studentEmail }
+              });
+            }, 500);
           } else {
             this.errorMessage = response.message || 'Login failed';
             this.toastr.error(this.errorMessage, 'Login Failed');
