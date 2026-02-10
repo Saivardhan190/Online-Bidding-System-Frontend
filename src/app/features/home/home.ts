@@ -53,7 +53,7 @@ export class Home implements OnInit {
       },
       error: () => {
         // ✅ Use mock data if API fails
-        this.featuredStalls = this. getMockStalls();
+        this.featuredStalls = this.getMockStalls();
         this.isLoading = false;
       }
     });

@@ -40,8 +40,8 @@ export class AuthService {
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr);
-        this.currentUserSignal. set(user);
-        console.log('User loaded from storage:', user. role);
+        this.currentUserSignal.set(user);
+        console.log('User loaded from storage:', user.role);
       } catch {
         this.clearSession();
       }
@@ -49,14 +49,14 @@ export class AuthService {
   }
 
   private setSession(token: string, user: User): void {
-    localStorage. setItem('token', token);
+    localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
     this.currentUserSignal.set(user);
     console.log('Session set for user:', user.studentEmail, 'Role:', user.role);
   }
 
   private clearSession(): void {
-    localStorage. removeItem('token');
+    localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('oauth_redirect');
     this.currentUserSignal.set(null);
@@ -64,7 +64,7 @@ export class AuthService {
 
   // Google OAuth
   loginWithGoogle(): void {
-    localStorage.setItem('oauth_redirect', window.location. pathname);
+    localStorage.setItem('oauth_redirect', window.location.pathname);
     window.location.href = this.googleOAuthUrl;
   }
 
@@ -86,7 +86,7 @@ export class AuthService {
     } catch (error) {
       console.error('OAuth callback error:', error);
       this.router.navigate(['/login'], { 
-        queryParams:  { error: 'OAuth authentication failed' } 
+        queryParams: { error: 'OAuth authentication failed' } 
       });
       return false;
     }
@@ -94,17 +94,17 @@ export class AuthService {
 
   // Email/Password Login
   login(request: LoginRequest): Observable<AuthResponse> {
-    this.isLoadingSignal. set(true);
+    this.isLoadingSignal.set(true);
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, request).pipe(
       tap({
         next: (response) => {
-          this.isLoadingSignal. set(false);
+          this.isLoadingSignal.set(false);
           if (response.success && response.token && response.user) {
             this.setSession(response.token, response.user);
-            console.log('Login successful.  Role:', response.user.role);
+            console.log('Login successful. Role:', response.user.role);
           }
         },
-        error: () => this.isLoadingSignal. set(false)
+        error: () => this.isLoadingSignal.set(false)
       })
     );
   }
@@ -127,14 +127,14 @@ export class AuthService {
   verifyOtp(email: string, otp: string): Observable<AuthResponse> {
     this.isLoadingSignal.set(true);
     return this.http.post<AuthResponse>(
-      `${this.apiUrl}/verify-otp? email=${encodeURIComponent(email)}&otp=${otp}`,
+      `${this.apiUrl}/verify-otp?email=${encodeURIComponent(email)}&otp=${otp}`,
       {}
     ).pipe(
       tap({
         next: (response) => {
-          this. isLoadingSignal.set(false);
+          this.isLoadingSignal.set(false);
           if (response.success && response.token && response.user) {
-            this. setSession(response. token, response.user);
+            this.setSession(response.token, response.user);
           }
         },
         error: () => this.isLoadingSignal.set(false)
@@ -198,7 +198,7 @@ export class AuthService {
   }
 
   refreshUserRole(): void {
-    this. getCurrentUserFromApi().subscribe();
+    this.getCurrentUserFromApi().subscribe();
   }
 
   getToken(): string | null {
