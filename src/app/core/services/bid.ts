@@ -62,8 +62,13 @@ export class BidService {
     return this.http.get<Bid[]>(`${this.apiUrl}/all`);
   }
 
-  // Helper:  Map any bid format to Bid[]
-  private mapToBids(items:  any[]): Bid[] {
+  // Declare winner for a stall (Admin)
+  declareWinner(stallId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/stall/${stallId}/declare-winner`, {});
+  }
+
+  // Helper: Map any bid format to Bid[]
+  private mapToBids(items: any[]): Bid[] {
     if (!items || ! Array.isArray(items)) return [];
     
     return items.map((item, index) => ({

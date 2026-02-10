@@ -9,52 +9,113 @@
 
     <!-- Filters -->
     <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <!-- Search -->
-        <div class="md:col-span-2">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+      <!-- Top Row - Search and Toggle -->
+      <div class="flex items-center gap-4 mb-4">
+        <div class="flex-1">
           <input 
             type="text" 
             [(ngModel)]="searchQuery"
-            (input)="filterStalls()"
-            placeholder="Search by name or location..."
+            (input)="onFilterChange()"
+            placeholder="🔍 Search by name, location, or description..."
             class="input-field"
           >
         </div>
-
-        <!-- Category Filter -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
-          <select [(ngModel)]="selectedCategory" (change)="filterStalls()" class="input-field">
-            <option value="">All Categories</option>
-            @for (category of categories; track category) {
-              <option [value]="category">{{ category }}</option>
-            }
-          </select>
-        </div>
-
-        <!-- Status Filter -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-          <select [(ngModel)]="selectedStatus" (change)="filterStalls()" class="input-field">
-            <option value="">All Status</option>
-            <option value="ACTIVE">🟢 Active Bidding</option>
-            <option value="AVAILABLE">🔵 Upcoming</option>
-            <option value="CLOSED">⚫ Closed</option>
-          </select>
-        </div>
+        <button 
+          (click)="showFilters = !showFilters"
+          class="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition flex items-center gap-2"
+        >
+          <span>{{ showFilters ? '▲' : '▼' }}</span>
+          <span>Filters</span>
+        </button>
       </div>
 
-      @if (searchQuery || selectedCategory || selectedStatus) {
-        <div class="mt-4 flex items-center justify-between">
-          <p class="text-sm text-gray-600">
-            Showing {{ filteredStalls.length }} of {{ stalls.length }} stalls
-          </p>
-          <button (click)="clearFilters()" class="text-blue-600 hover: underline text-sm">
-            Clear all filters
-          </button>
+      <!-- Advanced Filters (collapsible) -->
+      @if (showFilters) {
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4 animate-fadeIn">
+          <!-- Category Filter -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+            <select [(ngModel)]="selectedCategory" (change)="onFilterChange()" class="input-field">
+              <option value="">All Categories</option>
+              @for (category of categories; track category) {
+                <option [value]="category">{{ category }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Location Filter -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+            <select [(ngModel)]="selectedLocation" (change)="onFilterChange()" class="input-field">
+              <option value="">All Locations</option>
+              @for (location of locations; track location) {
+                <option [value]="location">{{ location }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Status Filter -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <select [(ngModel)]="selectedStatus" (change)="onFilterChange()" class="input-field">
+              <option value="">All Status</option>
+              <option value="ACTIVE">🔴 Active Now</option>
+              <option value="AVAILABLE">🟢 Starting Soon</option>
+              <option value="CLOSED">⚫ Ended</option>
+            </select>
+          </div>
+
+          <!-- Min Price -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Min Price</label>
+            <input 
+              type="number" 
+              [(ngModel)]="minPrice"
+              (input)="onFilterChange()"
+              placeholder="₹ 0"
+              class="input-field"
+            >
+          </div>
+
+          <!-- Max Price -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Max Price</label>
+            <input 
+              type="number" 
+              [(ngModel)]="maxPrice"
+              (input)="onFilterChange()"
+              placeholder="₹ 10000"
+              class="input-field"
+            >
+          </div>
         </div>
       }
+
+      <!-- Bottom Row - Results Count, Sort, and Clear -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t">
+        <p class="text-sm text-gray-600">
+          Showing <span class="font-bold">{{ filteredStalls.length }}</span> of <span class="font-bold">{{ stalls.length }}</span> stalls
+        </p>
+
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2">
+            <label class="text-sm font-medium text-gray-700">Sort by:</label>
+            <select [(ngModel)]="sortBy" (change)="onSortChange()" class="input-field py-2">
+              <option value="name">Name (A-Z)</option>
+              <option value="price-low">Price (Low to High)</option>
+              <option value="price-high">Price (High to Low)</option>
+              <option value="ending-soon">Ending Soon</option>
+              <option value="most-bids">Most Bids</option>
+            </select>
+          </div>
+
+          @if (searchQuery || selectedCategory || selectedStatus || selectedLocation || minPrice || maxPrice) {
+            <button (click)="clearFilters()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm">
+              🗑️ Clear Filters
+            </button>
+          }
+        </div>
+      </div>
     </div>
 
     <!-- Loading State -->

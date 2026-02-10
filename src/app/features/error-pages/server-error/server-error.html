@@ -1,0 +1,54 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+  <div class="text-center max-w-md">
+    <!-- 500 Icon -->
+    <div class="mb-8">
+      <div class="text-9xl font-bold text-purple-600">500</div>
+      <div class="text-6xl mt-4">⚠️</div>
+    </div>
+
+    <!-- Error Message -->
+    <h1 class="text-3xl font-bold text-gray-900 mb-4">
+      Internal Server Error
+    </h1>
+    <p class="text-gray-600 mb-8">
+      Oops! Something went wrong on our end. Our team has been notified and we're working to fix the issue.
+    </p>
+
+    <!-- Error Details -->
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-8 text-left">
+      <h3 class="font-semibold text-red-900 mb-2">💡 What you can do:</h3>
+      <ul class="text-sm text-red-800 space-y-1">
+        <li>• Try refreshing the page</li>
+        <li>• Wait a few minutes and try again</li>
+        <li>• Clear your browser cache</li>
+        <li>• Contact support if the problem persists</li>
+      </ul>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <button 
+        onclick="window.location.reload()" 
+        class="btn-primary inline-flex items-center justify-center gap-2"
+      >
+        <span>🔄</span>
+        <span>Retry</span>
+      </button>
+      <a 
+        routerLink="/home" 
+        class="btn-outline inline-flex items-center justify-center gap-2"
+      >
+        <span>🏠</span>
+        <span>Go to Home</span>
+      </a>
+    </div>
+
+    <!-- Support -->
+    <div class="mt-12 text-sm text-gray-500">
+      <p>Still having issues?</p>
+      <a href="mailto:support@biddingsystem.com" class="text-blue-600 hover:underline mt-2 inline-block">
+        Contact Support →
+      </a>
+    </div>
+  </div>
+</div>

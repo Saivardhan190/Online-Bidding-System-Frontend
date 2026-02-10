@@ -7,13 +7,15 @@ export interface Stall {
   category: string;
   image: string | null;
   basePrice: number;
+  originalPrice?: number;
+  maxBidders?: number;
   currentHighestBid: number;
   totalBids: number;
   status: StallStatus;
   biddingStart: string | null;
   biddingEnd: string | null;
   createdAt: string;
-  winner?:  {
+  winner?: {
     studentId: number;
     studentName: string;
   };
