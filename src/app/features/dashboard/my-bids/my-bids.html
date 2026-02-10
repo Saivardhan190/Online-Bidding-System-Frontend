@@ -1,0 +1,119 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-6xl mx-auto px-4">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <a routerLink="/dashboard" class="text-blue-600 hover: underline mb-2 inline-block">← Back to Dashboard</a>
+      <h1 class="text-3xl font-bold text-gray-900">My Bids</h1>
+      <p class="text-gray-600 mt-1">Track all your bidding activity</p>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white rounded-xl shadow p-4 text-center">
+        <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
+        <p class="text-sm text-gray-500">Total Bids</p>
+      </div>
+      <div class="bg-white rounded-xl shadow p-4 text-center">
+        <p class="text-2xl font-bold text-green-600">{{ stats.active }}</p>
+        <p class="text-sm text-gray-500">Active</p>
+      </div>
+      <div class="bg-white rounded-xl shadow p-4 text-center">
+        <p class="text-2xl font-bold text-yellow-600">{{ stats. won }}</p>
+        <p class="text-sm text-gray-500">Won</p>
+      </div>
+      <div class="bg-white rounded-xl shadow p-4 text-center">
+        <p class="text-2xl font-bold text-gray-600">{{ stats.lost }}</p>
+        <p class="text-sm text-gray-500">Lost</p>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    @if (error) {
+      <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-lg">
+        {{ error }}
+        <button (click)="loadBids()" class="ml-4 text-red-600 hover: underline">Retry</button>
+      </div>
+    }
+
+    <!-- Tabs -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div class="flex border-b overflow-x-auto">
+        @for (tab of tabs; track tab. id) {
+          <button
+            (click)="setActiveTab(tab. id)"
+            [ngClass]="activeTab === tab.id ? 'border-b-2 border-blue-600 text-blue-600 bg-blue-50' : 'text-gray-500 hover:bg-gray-50'"
+            class="flex-1 min-w-max px-6 py-4 font-medium transition flex items-center justify-center gap-2"
+          >
+            <span>{{ tab.icon }}</span>
+            <span>{{ tab. label }}</span>
+          </button>
+        }
+      </div>
+
+      <!-- Bids List -->
+      <div class="p-6">
+        @if (isLoading) {
+          <div class="flex justify-center py-12">
+            <div class="w-12 h-12 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
+          </div>
+        } @else if (filteredBids.length > 0) {
+          <div class="space-y-4">
+            @for (bid of filteredBids; track bid.bidId) {
+              <div class="flex flex-col md:flex-row md:items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
+                <!-- Stall Info -->
+                <div class="flex items-center mb-4 md:mb-0">
+                  <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mr-4">
+                    <span class="text-2xl text-white">🏪</span>
+                  </div>
+                  <div>
+                    <!-- ✅ Fixed: Use helper method -->
+                    <h3 class="font-semibold text-gray-900">{{ getBidStallName(bid) }}</h3>
+                    <p class="text-sm text-gray-500">Bid ID: {{ bid.bidId }}</p>
+                    <p class="text-xs text-gray-400">{{ formatDate(bid.bidTime) }}</p>
+                  </div>
+                </div>
+
+                <!-- Bid Amount & Status -->
+                <div class="flex items-center justify-between md:justify-end gap-6">
+                  <div class="text-right">
+                    <p class="text-xs text-gray-500">Your Bid</p>
+                    <p class="text-xl font-bold text-green-600">₹{{ bid.biddedPrice | number }}</p>
+                  </div>
+                  
+                  <span class="px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1" [ngClass]="getStatusBadge(bid).class">
+                    <span>{{ getStatusBadge(bid).icon }}</span>
+                    <span>{{ getStatusBadge(bid).label }}</span>
+                  </span>
+
+                  <a [routerLink]="['/stalls', bid.stallId]" class="text-blue-600 hover:underline text-sm hidden md:block">
+                    View →
+                  </a>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="text-center py-12">
+            <span class="text-6xl block mb-4">🏷️</span>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">No bids found</h3>
+            <p class="text-gray-500 mb-6">
+              @if (activeTab === 'all') {
+                You haven't placed any bids yet. 
+              } @else if (activeTab === 'active') {
+                No active bids at the moment.
+              } @else if (activeTab === 'won') {
+                You haven't won any auctions yet.  Keep bidding!
+              } @else {
+                No lost bids to show.
+              }
+            </p>
+            <a routerLink="/stalls" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+              Browse Stalls →
+            </a>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,208 @@
+<div class="min-h-screen bg-gray-100 py-8">
+  <div class="max-w-7xl mx-auto px-4">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard 👑</h1>
+      <p class="text-gray-600 mt-1">Manage your bidding platform</p>
+    </div>
+
+    @if (isLoading) {
+      <div class="flex justify-center py-12">
+        <div class="w-12 h-12 border-4 border-purple-200 rounded-full animate-spin border-t-purple-600"></div>
+      </div>
+    } @else {
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        <div class="bg-white rounded-xl shadow p-5 hover:shadow-lg transition">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-500">Total Users</p>
+              <p class="text-2xl font-bold text-gray-900">{{ stats.totalUsers }}</p>
+            </div>
+            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <span class="text-xl">👥</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow p-5 hover:shadow-lg transition">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-500">Total Bidders</p>
+              <p class="text-2xl font-bold text-green-600">{{ stats.totalBidders }}</p>
+            </div>
+            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <span class="text-xl">🎯</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow p-5 hover:shadow-lg transition">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-500">Total Stalls</p>
+              <p class="text-2xl font-bold text-purple-600">{{ stats.totalStalls }}</p>
+            </div>
+            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <span class="text-xl">🏪</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow p-5 hover:shadow-lg transition">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-500">Active Auctions</p>
+              <p class="text-2xl font-bold text-red-600">{{ stats.activeAuctions }}</p>
+            </div>
+            <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+              <span class="text-xl">🔴</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow p-5 hover:shadow-lg transition">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-500">Pending Apps</p>
+              <p class="text-2xl font-bold text-yellow-600">{{ stats. pendingApplications }}</p>
+            </div>
+            <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <span class="text-xl">📋</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow p-5 hover:shadow-lg transition">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-500">Revenue</p>
+              <p class="text-2xl font-bold text-emerald-600">₹{{ stats.totalRevenue | number }}</p>
+            </div>
+            <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+              <span class="text-xl">💰</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <h2 class="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <a routerLink="/admin/applications" class="flex flex-col items-center p-4 bg-yellow-50 rounded-xl hover:bg-yellow-100 transition text-center">
+            <span class="text-3xl mb-2">📋</span>
+            <span class="text-sm font-medium text-gray-700">Applications</span>
+            @if (stats.pendingApplications > 0) {
+              <span class="mt-1 px-2 py-0.5 bg-yellow-500 text-white text-xs rounded-full">{{ stats.pendingApplications }} pending</span>
+            }
+          </a>
+          <a routerLink="/admin/stalls" class="flex flex-col items-center p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition text-center">
+            <span class="text-3xl mb-2">🏪</span>
+            <span class="text-sm font-medium text-gray-700">Manage Stalls</span>
+          </a>
+          <a routerLink="/admin/stalls/create" class="flex flex-col items-center p-4 bg-green-50 rounded-xl hover:bg-green-100 transition text-center">
+            <span class="text-3xl mb-2">➕</span>
+            <span class="text-sm font-medium text-gray-700">Create Stall</span>
+          </a>
+          <a routerLink="/admin/users" class="flex flex-col items-center p-4 bg-blue-50 rounded-xl hover: bg-blue-100 transition text-center">
+            <span class="text-3xl mb-2">👥</span>
+            <span class="text-sm font-medium text-gray-700">Manage Users</span>
+          </a>
+          <a routerLink="/admin/results" class="flex flex-col items-center p-4 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition text-center">
+            <span class="text-3xl mb-2">🏆</span>
+            <span class="text-sm font-medium text-gray-700">Bid Results</span>
+          </a>
+          <a routerLink="/stalls" class="flex flex-col items-center p-4 bg-red-50 rounded-xl hover:bg-red-100 transition text-center">
+            <span class="text-3xl mb-2">🔴</span>
+            <span class="text-sm font-medium text-gray-700">Live Auctions</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Pending Applications -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-gray-900">🕐 Pending Applications</h2>
+            <a routerLink="/admin/applications" class="text-blue-600 hover:underline text-sm">View All →</a>
+          </div>
+
+          @if (recentApplications.length > 0) {
+            <div class="space-y-4">
+              @for (app of recentApplications; track app.applicationId) {
+                <div class="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">
+                  <div class="flex items-center">
+                    <div class="w-10 h-10 bg-yellow-200 rounded-full flex items-center justify-center mr-3">
+                      <span class="font-bold text-yellow-700">{{ getApplicationUserInitial(app) }}</span>
+                    </div>
+                    <div>
+                      <p class="font-medium text-gray-900">{{ getApplicationUserName(app) }}</p>
+                      <p class="text-sm text-gray-500">{{ getApplicationUserEmail(app) }}</p>
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    <button 
+                      (click)="approveApplication(app.applicationId)"
+                      class="px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition">
+                      ✓
+                    </button>
+                    <button 
+                      (click)="rejectApplication(app. applicationId)"
+                      class="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition">
+                      ✗
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="text-center py-8 text-gray-500">
+              <span class="text-4xl block mb-2">✅</span>
+              <p>No pending applications</p>
+            </div>
+          }
+        </div>
+
+        <!-- Active Auctions -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-gray-900">🔴 Active Auctions</h2>
+            <a routerLink="/admin/stalls" class="text-blue-600 hover:underline text-sm">View All →</a>
+          </div>
+
+          @if (activeStalls.length > 0) {
+            <div class="space-y-4">
+              @for (stall of activeStalls; track stall.stallId) {
+                <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+                  <div class="flex items-center">
+                    <div class="w-10 h-10 bg-green-200 rounded-lg flex items-center justify-center mr-3">
+                      <span class="text-xl">🏪</span>
+                    </div>
+                    <div>
+                      <p class="font-medium text-gray-900">{{ stall.stallName }}</p>
+                      <p class="text-sm text-gray-500">{{ stall.totalBids || 0 }} bids</p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <p class="font-bold text-green-600">₹{{ stall. currentHighestBid | number }}</p>
+                    <span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full animate-pulse">Live</span>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="text-center py-8 text-gray-500">
+              <span class="text-4xl block mb-2">😴</span>
+              <p>No active auctions</p>
+              <a routerLink="/admin/stalls/create" class="text-blue-600 hover:underline text-sm mt-2 inline-block">
+                Create a stall →
+              </a>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

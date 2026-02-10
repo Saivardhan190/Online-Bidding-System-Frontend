@@ -1,0 +1,87 @@
+<div class="min-h-screen bg-gray-100 py-8">
+  <div class="max-w-7xl mx-auto px-4">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <a routerLink="/admin" class="text-blue-600 hover:underline mb-2 inline-block">← Back to Admin</a>
+      <h1 class="text-3xl font-bold text-gray-900">Bidding Results 🏆</h1>
+      <p class="text-gray-600 mt-1">View auction winners and results</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div class="bg-white rounded-xl shadow p-6 text-center">
+        <p class="text-3xl font-bold text-gray-900">{{ stats.total }}</p>
+        <p class="text-gray-500">Completed Auctions</p>
+      </div>
+      <div class="bg-white rounded-xl shadow p-6 text-center">
+        <p class="text-3xl font-bold text-green-600">₹{{ stats.totalRevenue | number }}</p>
+        <p class="text-gray-500">Total Revenue</p>
+      </div>
+      <div class="bg-white rounded-xl shadow p-6 text-center">
+        <p class="text-3xl font-bold text-blue-600">₹{{ stats.avgBid | number:'1.0-0' }}</p>
+        <p class="text-gray-500">Average Winning Bid</p>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="bg-white rounded-xl shadow-lg mb-6">
+      <div class="p-4 border-b">
+        <div class="relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="onSearchChange()"
+            placeholder="Search by stall name or winner..."
+            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus: border-blue-500"
+          >
+        </div>
+      </div>
+
+      <!-- Results List -->
+      <div class="p-6">
+        @if (isLoading) {
+          <div class="flex justify-center py-12">
+            <div class="w-12 h-12 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
+          </div>
+        } @else if (filteredResults.length > 0) {
+          <div class="space-y-4">
+            @for (result of filteredResults; track result. resultId) {
+              <div class="flex flex-col md:flex-row md:items-center justify-between p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-200">
+                <div class="flex items-center mb-4 md:mb-0">
+                  <div class="w-14 h-14 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center mr-4">
+                    <span class="text-2xl">🏆</span>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-gray-900">{{ result.stallName }}</h3>
+                    <p class="text-sm text-gray-500">Stall #{{ result.stallNo }}</p>
+                    <p class="text-xs text-gray-400">Closed: {{ formatDate(result.closedAt) }}</p>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-6">
+                  <div>
+                    <p class="text-xs text-gray-500">Winner</p>
+                    <p class="font-semibold text-gray-900">{{ result.winnerName }}</p>
+                    <p class="text-xs text-gray-500">{{ result.winnerEmail }}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-xs text-gray-500">Winning Bid</p>
+                    <p class="text-2xl font-bold text-green-600">₹{{ result. winningBid | number }}</p>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="text-center py-12">
+            <span class="text-6xl block mb-4">🏆</span>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">No results yet</h3>
+            <p class="text-gray-500">Auction results will appear here once auctions are completed.</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

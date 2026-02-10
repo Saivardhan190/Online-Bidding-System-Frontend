@@ -1,0 +1,163 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-3xl mx-auto px-4">
+    
+    <!-- Header -->
+    <div class="mb-8">
+      <a routerLink="/profile" class="text-blue-600 hover: underline mb-2 inline-block">← Back to Profile</a>
+      <h1 class="text-3xl font-bold text-gray-900">Edit Profile</h1>
+      <p class="text-gray-600 mt-1">Update your account information</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div class="flex border-b">
+        <button 
+          (click)="activeTab = 'profile'"
+          [class]="activeTab === 'profile' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'"
+          class="flex-1 py-4 font-medium hover:bg-gray-50 transition"
+        >
+          👤 Profile Info
+        </button>
+        <button 
+          (click)="activeTab = 'password'"
+          [class]="activeTab === 'password' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'"
+          class="flex-1 py-4 font-medium hover:bg-gray-50 transition"
+        >
+          🔒 Change Password
+        </button>
+      </div>
+
+      <div class="p-6">
+        <!-- Profile Tab -->
+        @if (activeTab === 'profile') {
+          @if (successMessage) {
+            <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-r-lg">
+              {{ successMessage }}
+            </div>
+          }
+
+          @if (errorMessage) {
+            <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-lg">
+              {{ errorMessage }}
+            </div>
+          }
+
+          <form [formGroup]="profileForm" (ngSubmit)="onProfileSubmit()">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Full Name -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                <input type="text" formControlName="studentName" class="input-field">
+              </div>
+
+              <!-- Phone -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                <input type="tel" formControlName="phone" class="input-field">
+              </div>
+
+              <!-- Department -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                <select formControlName="department" class="input-field">
+                  <option value="CSE">Computer Science & Engineering</option>
+                  <option value="ECE">Electronics & Communication</option>
+                  <option value="EEE">Electrical & Electronics</option>
+                  <option value="MECH">Mechanical Engineering</option>
+                  <option value="CIVIL">Civil Engineering</option>
+                  <option value="IT">Information Technology</option>
+                  <option value="MBA">MBA</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+
+              <!-- Year -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Year</label>
+                <select formControlName="year" class="input-field">
+                  <option [value]="1">1st Year</option>
+                  <option [value]="2">2nd Year</option>
+                  <option [value]="3">3rd Year</option>
+                  <option [value]="4">4th Year</option>
+                </select>
+              </div>
+
+              <!-- Gender -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                <select formControlName="gender" class="input-field">
+                  <option value="MALE">Male</option>
+                  <option value="FEMALE">Female</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+
+              <!-- Address -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                <input type="text" formControlName="address" class="input-field" placeholder="Optional">
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <button type="submit" [disabled]="profileForm.invalid || isLoading" class="btn-primary">
+                @if (isLoading) {
+                  Saving...
+                } @else {
+                  Save Changes
+                }
+              </button>
+            </div>
+          </form>
+        }
+
+        <!-- Password Tab -->
+        @if (activeTab === 'password') {
+          @if (passwordSuccess) {
+            <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-r-lg">
+              {{ passwordSuccess }}
+            </div>
+          }
+
+          @if (passwordError) {
+            <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-lg">
+              {{ passwordError }}
+            </div>
+          }
+
+          <form [formGroup]="passwordForm" (ngSubmit)="onPasswordSubmit()">
+            <div class="space-y-4 max-w-md">
+              <!-- Current Password -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+                <input type="password" formControlName="oldPassword" class="input-field">
+              </div>
+
+              <!-- New Password -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                <input type="password" formControlName="newPassword" class="input-field" placeholder="Min 8 characters">
+              </div>
+
+              <!-- Confirm Password -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+                <input type="password" formControlName="confirmPassword" class="input-field">
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <button type="submit" [disabled]="passwordForm. invalid || isPasswordLoading" class="btn-primary">
+                @if (isPasswordLoading) {
+                  Changing...
+                } @else {
+                  Change Password
+                }
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+    </div>
+  </div>
+</div>

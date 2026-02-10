@@ -1,0 +1,276 @@
+<div class="min-h-screen bg-gray-100 py-8">
+  <div class="max-w-7xl mx-auto px-4">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <a routerLink="/admin" class="text-blue-600 hover: underline mb-2 inline-block">← Back to Admin</a>
+      <h1 class="text-3xl font-bold text-gray-900">Manage Applications 📋</h1>
+      <p class="text-gray-600 mt-1">Review and manage bidder applications</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white rounded-xl shadow p-4 text-center">
+        <p class="text-2xl font-bold text-yellow-600">{{ stats.pending }}</p>
+        <p class="text-sm text-gray-500">Pending</p>
+      </div>
+      <div class="bg-white rounded-xl shadow p-4 text-center">
+        <p class="text-2xl font-bold text-green-600">{{ stats. approved }}</p>
+        <p class="text-sm text-gray-500">Approved</p>
+      </div>
+      <div class="bg-white rounded-xl shadow p-4 text-center">
+        <p class="text-2xl font-bold text-red-600">{{ stats.rejected }}</p>
+        <p class="text-sm text-gray-500">Rejected</p>
+      </div>
+      <div class="bg-white rounded-xl shadow p-4 text-center">
+        <p class="text-2xl font-bold text-gray-900">{{ stats.total }}</p>
+        <p class="text-sm text-gray-500">Total</p>
+      </div>
+    </div>
+
+    <!-- Search & Filters -->
+    <div class="bg-white rounded-xl shadow-lg mb-6">
+      <div class="p-4 border-b">
+        <div class="relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="onSearchChange()"
+            placeholder="Search by name, email, or college ID..."
+            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus: ring-blue-500 focus:border-blue-500"
+          >
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex border-b overflow-x-auto">
+        @for (tab of tabs; track tab.id) {
+          <button
+            (click)="setActiveTab(tab.id)"
+            [ngClass]="activeTab === tab.id ? 'border-b-2 border-blue-600 text-blue-600 bg-blue-50' : 'text-gray-500 hover:bg-gray-50'"
+            class="flex-1 min-w-max px-6 py-4 font-medium transition flex items-center justify-center gap-2"
+          >
+            <span>{{ tab.icon }}</span>
+            <span>{{ tab. label }}</span>
+            @if (tab.id === 'PENDING' && stats.pending > 0) {
+              <span class="px-2 py-0.5 bg-yellow-500 text-white text-xs rounded-full">{{ stats.pending }}</span>
+            }
+          </button>
+        }
+      </div>
+
+      <!-- Applications List -->
+      <div class="p-6">
+        @if (isLoading) {
+          <div class="flex justify-center py-12">
+            <div class="w-12 h-12 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
+          </div>
+        } @else if (filteredApplications.length > 0) {
+          <div class="space-y-4">
+            @for (app of filteredApplications; track app.applicationId) {
+              <div 
+                (click)="openModal(app)"
+                class="flex flex-col md:flex-row md:items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition cursor-pointer"
+              >
+                <!-- User Info -->
+                <div class="flex items-center mb-4 md:mb-0">
+                  <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mr-4 overflow-hidden">
+                    @if (getApplicationProfilePicture(app)) {
+                      <img [src]="getApplicationProfilePicture(app)" class="w-full h-full object-cover" alt="Profile">
+                    } @else {
+                      <span class="text-white font-bold text-lg">{{ getApplicationUserInitial(app) }}</span>
+                    }
+                  </div>
+                  <div>
+                    <h3 class="font-semibold text-gray-900">{{ getApplicationUserName(app) }}</h3>
+                    <p class="text-sm text-gray-500">{{ getApplicationUserEmail(app) }}</p>
+                    <p class="text-xs text-gray-400">{{ getApplicationDepartment(app) }} • Year {{ getApplicationYear(app) }}</p>
+                  </div>
+                </div>
+
+                <!-- Status & Actions -->
+                <div class="flex items-center gap-4">
+                  <div class="text-right hidden md:block">
+                    <p class="text-xs text-gray-500">Applied</p>
+                    <p class="text-sm text-gray-700">{{ formatDate(app.appliedAt) }}</p>
+                  </div>
+                  
+                  <span class="px-3 py-1 rounded-full text-sm font-medium" [ngClass]="getStatusBadge(app.status).class">
+                    {{ getStatusBadge(app.status).label }}
+                  </span>
+
+                  @if (app.status === 'PENDING') {
+                    <div class="flex gap-2">
+                      <button 
+                        (click)="quickApprove(app, $event)"
+                        class="px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition">
+                        ✓ Approve
+                      </button>
+                      <button 
+                        (click)="quickReject(app, $event)"
+                        class="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition">
+                        ✗ Reject
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="text-center py-12">
+            <span class="text-6xl block mb-4">📋</span>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">No applications found</h3>
+            <p class="text-gray-500">
+              @if (activeTab === 'PENDING') {
+                No pending applications at the moment.
+              } @else if (activeTab === 'APPROVED') {
+                No approved applications yet.
+              } @else if (activeTab === 'REJECTED') {
+                No rejected applications. 
+              } @else {
+                No applications match your search. 
+              }
+            </p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Application Detail Modal -->
+@if (showModal && selectedApplication) {
+  <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <!-- Modal Header -->
+      <div class="p-6 border-b flex items-center justify-between">
+        <h2 class="text-xl font-bold text-gray-900">Application Details</h2>
+        <button (click)="closeModal()" class="p-2 hover:bg-gray-100 rounded-lg">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6">
+        <!-- User Info -->
+        <div class="flex items-center mb-6">
+          <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mr-4 overflow-hidden">
+            @if (getApplicationProfilePicture(selectedApplication)) {
+              <img [src]="getApplicationProfilePicture(selectedApplication)" class="w-full h-full object-cover" alt="Profile">
+            } @else {
+              <span class="text-white font-bold text-2xl">{{ getApplicationUserInitial(selectedApplication) }}</span>
+            }
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-gray-900">{{ getApplicationUserName(selectedApplication) }}</h3>
+            <p class="text-gray-500">{{ getApplicationUserEmail(selectedApplication) }}</p>
+            <span class="px-3 py-1 rounded-full text-sm font-medium" [ngClass]="getStatusBadge(selectedApplication.status).class">
+              {{ getStatusBadge(selectedApplication. status).label }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Details Grid -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="text-sm text-gray-500">College ID</p>
+            <p class="font-medium text-gray-900">{{ getApplicationCollageId(selectedApplication) || 'N/A' }}</p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="text-sm text-gray-500">Phone</p>
+            <p class="font-medium text-gray-900">{{ getApplicationPhone(selectedApplication) }}</p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="text-sm text-gray-500">Department</p>
+            <p class="font-medium text-gray-900">{{ getApplicationDepartment(selectedApplication) }}</p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p class="text-sm text-gray-500">Year</p>
+            <p class="font-medium text-gray-900">{{ getApplicationYear(selectedApplication) }}</p>
+          </div>
+        </div>
+
+        <!-- Reason -->
+        <div class="mb-6">
+          <h4 class="font-semibold text-gray-900 mb-2">Reason for Applying</h4>
+          <p class="text-gray-700 bg-gray-50 p-4 rounded-lg">{{ selectedApplication.reason || 'No reason provided' }}</p>
+        </div>
+
+        <!-- Experience -->
+        @if (selectedApplication. experience) {
+          <div class="mb-6">
+            <h4 class="font-semibold text-gray-900 mb-2">Experience</h4>
+            <p class="text-gray-700 bg-gray-50 p-4 rounded-lg">{{ selectedApplication.experience }}</p>
+          </div>
+        }
+
+        <!-- Admin Remarks (for pending) -->
+        @if (selectedApplication.status === 'PENDING') {
+          <div class="mb-6">
+            <label class="block font-semibold text-gray-900 mb-2">Admin Remarks (Optional)</label>
+            <textarea 
+              [(ngModel)]="adminRemarks"
+              rows="3"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Add any notes or feedback..."
+            ></textarea>
+          </div>
+        }
+
+        <!-- Previous Remarks -->
+        @if (selectedApplication.adminRemarks) {
+          <div class="mb-6">
+            <h4 class="font-semibold text-gray-900 mb-2">Admin Remarks</h4>
+            <p class="text-gray-700 bg-gray-50 p-4 rounded-lg">{{ selectedApplication.adminRemarks }}</p>
+          </div>
+        }
+
+        <!-- Applied/Reviewed Date -->
+        <div class="text-sm text-gray-500 mb-6">
+          <p>Applied: {{ formatDate(selectedApplication. appliedAt) }}</p>
+          @if (selectedApplication. reviewedAt) {
+            <p>Reviewed: {{ formatDate(selectedApplication.reviewedAt) }}</p>
+          }
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      @if (selectedApplication.status === 'PENDING') {
+        <div class="p-6 border-t flex gap-4">
+          <button 
+            (click)="rejectApplication()"
+            [disabled]="isProcessing"
+            class="flex-1 bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50">
+            @if (isProcessing) {
+              Processing...
+            } @else {
+              ❌ Reject
+            }
+          </button>
+          <button 
+            (click)="approveApplication()"
+            [disabled]="isProcessing"
+            class="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition disabled:opacity-50">
+            @if (isProcessing) {
+              Processing...
+            } @else {
+              ✅ Approve
+            }
+          </button>
+        </div>
+      } @else {
+        <div class="p-6 border-t">
+          <button 
+            (click)="closeModal()"
+            class="w-full bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition">
+            Close
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+}

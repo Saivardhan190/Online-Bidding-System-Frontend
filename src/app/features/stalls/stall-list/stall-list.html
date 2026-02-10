@@ -1,0 +1,177 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-7xl mx-auto px-4">
+    
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">Browse Stalls</h1>
+      <p class="text-gray-600 mt-1">Find and bid on your favorite stall locations</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- Search -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery"
+            (input)="filterStalls()"
+            placeholder="Search by name or location..."
+            class="input-field"
+          >
+        </div>
+
+        <!-- Category Filter -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+          <select [(ngModel)]="selectedCategory" (change)="filterStalls()" class="input-field">
+            <option value="">All Categories</option>
+            @for (category of categories; track category) {
+              <option [value]="category">{{ category }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Status Filter -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+          <select [(ngModel)]="selectedStatus" (change)="filterStalls()" class="input-field">
+            <option value="">All Status</option>
+            <option value="ACTIVE">🟢 Active Bidding</option>
+            <option value="AVAILABLE">🔵 Upcoming</option>
+            <option value="CLOSED">⚫ Closed</option>
+          </select>
+        </div>
+      </div>
+
+      @if (searchQuery || selectedCategory || selectedStatus) {
+        <div class="mt-4 flex items-center justify-between">
+          <p class="text-sm text-gray-600">
+            Showing {{ filteredStalls.length }} of {{ stalls.length }} stalls
+          </p>
+          <button (click)="clearFilters()" class="text-blue-600 hover: underline text-sm">
+            Clear all filters
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Loading State -->
+    @if (isLoading) {
+      <div class="flex justify-center py-12">
+        <div class="w-12 h-12 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
+      </div>
+    }
+
+    <!-- Stalls Grid -->
+    @if (! isLoading) {
+      @if (filteredStalls.length > 0) {
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          @for (stall of filteredStalls; track stall. stallId) {
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <!-- Stall Image -->
+              <div class="h-48 bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center relative">
+                @if (stall. image) {
+                  <img [src]="stall.image" class="w-full h-full object-cover">
+                } @else {
+                  <span class="text-6xl">🏪</span>
+                }
+                
+                <!-- Status Badge -->
+                <span class="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-medium" [ngClass]="getStatusBadgeClass(stall.status)">
+                  {{ stall.status }}
+                </span>
+              </div>
+
+              <!-- Stall Info -->
+              <div class="p-5">
+                <div class="flex items-start justify-between mb-2">
+                  <div>
+                    <h3 class="text-lg font-bold text-gray-900">{{ stall. stallName }}</h3>
+                    <p class="text-sm text-gray-500">Stall #{{ stall.stallNo }}</p>
+                  </div>
+                  <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">{{ stall.category }}</span>
+                </div>
+
+                <p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ stall.description }}</p>
+
+                <div class="flex items-center text-sm text-gray-500 mb-4">
+                  <span class="mr-1">📍</span>
+                  {{ stall.location }}
+                </div>
+
+                <!-- Price Info -->
+                <div class="flex items-center justify-between mb-4 p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p class="text-xs text-gray-500">Base Price</p>
+                    <p class="font-semibold text-gray-900">₹{{ stall. basePrice | number }}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-xs text-gray-500">Current Bid</p>
+                    <p class="font-bold text-green-600">₹{{ stall. currentHighestBid | number }}</p>
+                  </div>
+                </div>
+
+                <!-- Bids Count -->
+                <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
+                  <span>🏷️ {{ stall.totalBids }} bids</span>
+                  @if (stall. status === 'ACTIVE') {
+                    <span class="text-green-600 font-medium animate-pulse">● Live</span>
+                  }
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-2">
+                  <a [routerLink]="['/stalls', stall.stallId]" class="flex-1 btn-outline text-center ! py-2 text-sm">
+                    View Details
+                  </a>
+                  
+                  @if (stall. status === 'ACTIVE') {
+                    @if (isBidder()) {
+                      <a [routerLink]="['/live-bidding', stall. stallId]" class="flex-1 btn-primary text-center !py-2 text-sm">
+                        🔴 Live Bidding
+                      </a>
+                    } @else {
+                      <button disabled class="flex-1 bg-gray-300 text-gray-500 py-2 rounded-lg text-sm cursor-not-allowed" title="Become a bidder to participate">
+                        🔒 Bidding
+                      </button>
+                    }
+                  } @else if (stall.status === 'AVAILABLE') {
+                    <button disabled class="flex-1 bg-blue-100 text-blue-600 py-2 rounded-lg text-sm cursor-not-allowed">
+                      ⏰ Coming Soon
+                    </button>
+                  } @else {
+                    <button disabled class="flex-1 bg-gray-100 text-gray-500 py-2 rounded-lg text-sm cursor-not-allowed">
+                      Closed
+                    </button>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="text-center py-12 bg-white rounded-xl shadow-lg">
+          <span class="text-6xl mb-4 block">🔍</span>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">No stalls found</h3>
+          <p class="text-gray-500 mb-4">Try adjusting your search or filter criteria</p>
+          <button (click)="clearFilters()" class="btn-primary">
+            Clear Filters
+          </button>
+        </div>
+      }
+    }
+
+    <!-- Become a Bidder CTA -->
+    @if (! isBidder()) {
+      <div class="mt-12 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white text-center">
+        <h2 class="text-2xl font-bold mb-2">Want to participate in Live Bidding? </h2>
+        <p class="text-blue-100 mb-6">Apply to become a bidder and start winning your favorite stalls!</p>
+        <a routerLink="/bidder-application/apply" class="bg-white text-blue-600 font-bold px-8 py-3 rounded-lg hover:bg-blue-50 transition inline-block">
+          Apply Now →
+        </a>
+      </div>
+    }
+  </div>
+</div>

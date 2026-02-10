@@ -1,0 +1,146 @@
+<div class="min-h-screen bg-gray-50 py-12 px-4">
+  <div class="max-w-2xl mx-auto">
+    
+    <!-- Header -->
+    <div class="mb-8">
+      <a routerLink="/dashboard" class="text-blue-600 hover: underline mb-2 inline-block">← Back to Dashboard</a>
+      <h1 class="text-3xl font-bold text-gray-900">Application Status</h1>
+      <p class="text-gray-600 mt-1">Track your bidder application progress</p>
+    </div>
+
+    @if (isLoading) {
+      <div class="flex justify-center py-12">
+        <div class="w-12 h-12 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
+      </div>
+    } @else {
+      <!-- Status Card -->
+      <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+        <!-- Status Header -->
+        <div [ngClass]="getStatusConfig().bgColor" class="p-8 text-center">
+          <div [ngClass]="getStatusConfig().iconBg" class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-5xl">{{ getStatusConfig().icon }}</span>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ getStatusConfig().title }}</h2>
+          <p class="text-gray-600 max-w-md mx-auto">{{ getStatusConfig().message }}</p>
+        </div>
+
+        <!-- Status Timeline -->
+        <div class="p-8">
+          <h3 class="font-semibold text-gray-900 mb-6">Application Progress</h3>
+          
+          <div class="relative">
+            <!-- Timeline Line -->
+            <div class="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+
+            <!-- Step 1: Submitted -->
+            <div class="relative flex items-start mb-8">
+              <div class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center z-10">
+                <span class="text-white text-xl">✓</span>
+              </div>
+              <div class="ml-4">
+                <p class="font-semibold text-gray-900">Application Submitted</p>
+                <p class="text-sm text-gray-500">Your application has been received</p>
+              </div>
+            </div>
+
+            <!-- Step 2: Under Review -->
+            <div class="relative flex items-start mb-8">
+              <div [ngClass]="status === 'PENDING' || status === 'APPROVED' ? 'bg-green-500' : 'bg-gray-300'"
+                   class="w-12 h-12 rounded-full flex items-center justify-center z-10">
+                @if (status === 'PENDING') {
+                  <span class="text-white text-xl animate-pulse">⏳</span>
+                } @else if (status === 'APPROVED' || status === 'REJECTED') {
+                  <span class="text-white text-xl">✓</span>
+                } @else {
+                  <span class="text-white text-xl">2</span>
+                }
+              </div>
+              <div class="ml-4">
+                <p class="font-semibold text-gray-900">Under Review</p>
+                <p class="text-sm text-gray-500">
+                  @if (status === 'PENDING') {
+                    Currently being reviewed by admin
+                  } @else if (status === 'APPROVED' || status === 'REJECTED') {
+                    Review completed
+                  } @else {
+                    Waiting for submission
+                  }
+                </p>
+              </div>
+            </div>
+
+            <!-- Step 3: Decision -->
+            <div class="relative flex items-start">
+              <div [ngClass]="{
+                     'bg-green-500': status === 'APPROVED',
+                     'bg-red-500': status === 'REJECTED',
+                     'bg-gray-300':  status !== 'APPROVED' && status !== 'REJECTED'
+                   }"
+                   class="w-12 h-12 rounded-full flex items-center justify-center z-10">
+                @if (status === 'APPROVED') {
+                  <span class="text-white text-xl">✓</span>
+                } @else if (status === 'REJECTED') {
+                  <span class="text-white text-xl">✗</span>
+                } @else {
+                  <span class="text-white text-xl">3</span>
+                }
+              </div>
+              <div class="ml-4">
+                <p class="font-semibold text-gray-900">Decision</p>
+                <p class="text-sm text-gray-500">
+                  @if (status === 'APPROVED') {
+                    Application approved! 
+                  } @else if (status === 'REJECTED') {
+                    Application rejected
+                  } @else {
+                    Waiting for admin decision
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="p-8 bg-gray-50 border-t">
+          @if (status === 'APPROVED') {
+            <div class="flex flex-col sm:flex-row gap-4">
+              <a routerLink="/stalls" class="flex-1 btn-primary text-center">
+                🏪 Browse Stalls
+              </a>
+              <a routerLink="/dashboard" class="flex-1 btn-outline text-center">
+                📊 Go to Dashboard
+              </a>
+            </div>
+          } @else if (status === 'NOT_APPLIED') {
+            <a routerLink="/bidder-application/apply" class="btn-primary w-full text-center block">
+              📝 Apply Now
+            </a>
+          } @else if (status === 'REJECTED') {
+            <div class="text-center">
+              <p class="text-gray-600 mb-4">Contact support if you have questions about your application. </p>
+              <a href="mailto:support@bidmart.com" class="btn-outline inline-block">
+                📧 Contact Support
+              </a>
+            </div>
+          } @else {
+            <div class="text-center text-gray-600">
+              <p>Please wait while your application is being reviewed. </p>
+              <p class="text-sm mt-2">You will receive an email notification once a decision is made. </p>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Help Section -->
+      <div class="mt-8 bg-blue-50 rounded-xl p-6">
+        <h3 class="font-semibold text-gray-900 mb-2">💡 Need Help?</h3>
+        <p class="text-gray-600 text-sm">
+          If you have any questions about your application or the bidding process, 
+          please contact our support team at 
+          <a href="mailto:support@bidmart.com" class="text-blue-600 hover: underline">support&#64;bidmart. com</a>
+        </p>
+      </div>
+    }
+  </div>
+</div>

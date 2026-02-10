@@ -1,0 +1,69 @@
+// Navbar animations
+@keyframes fadeIn {
+  from {
+    opacity:  0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out;
+}
+
+// Smooth transitions for all interactive elements
+nav {
+  a, button {
+    transition:  all 0.2s ease;
+  }
+}
+
+// Active link indicator
+.router-link-active {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform:  translateX(-50%);
+    width: 4px;
+    height: 4px;
+    background: currentColor;
+    border-radius: 50%;
+  }
+}
+
+// Hover effects
+.hover-lift {
+  transition: transform 0.2s ease;
+  
+  &:hover {
+    transform:  translateY(-2px);
+  }
+}
+
+// Dropdown shadow
+.dropdown-shadow {
+  box-shadow: 
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}

@@ -1,0 +1,301 @@
+<nav class="bg-white shadow-lg sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="flex items-center justify-between h-16">
+      
+      <!-- Logo -->
+      <a routerLink="/home" class="flex items-center gap-2 text-blue-600 font-bold text-xl hover:text-blue-700 transition">
+        <span class="text-2xl">🏪</span>
+        <span class="hidden sm:inline">BidMart</span>
+      </a>
+
+      <!-- Desktop Navigation -->
+      <div class="hidden md:flex items-center gap-1">
+        <a routerLink="/home" 
+           routerLinkActive="bg-blue-50 text-blue-600" 
+           [routerLinkActiveOptions]="{ exact: true }"
+           class="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition font-medium">
+          Home
+        </a>
+        
+        @if (isLoggedIn()) {
+          <a routerLink="/stalls" 
+             routerLinkActive="bg-blue-50 text-blue-600"
+             class="px-4 py-2 rounded-lg text-gray-600 hover: bg-gray-100 hover:text-gray-900 transition font-medium">
+            Stalls
+          </a>
+          <a routerLink="/dashboard" 
+             routerLinkActive="bg-blue-50 text-blue-600"
+             class="px-4 py-2 rounded-lg text-gray-600 hover: bg-gray-100 hover:text-gray-900 transition font-medium">
+            Dashboard
+          </a>
+          <a routerLink="/my-bids" 
+             routerLinkActive="bg-blue-50 text-blue-600"
+             class="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition font-medium">
+            My Bids
+          </a>
+          
+          <!-- Admin Link -->
+          @if (isAdmin()) {
+            <a routerLink="/admin" 
+               routerLinkActive="bg-purple-100 text-purple-700"
+               class="px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-50 hover:text-purple-700 transition font-medium flex items-center gap-1">
+              <span>👑</span>
+              <span>Admin</span>
+            </a>
+          }
+        }
+      </div>
+
+      <!-- Right Section -->
+      <div class="flex items-center gap-3">
+        @if (isLoggedIn()) {
+          <!-- User Dropdown -->
+          <div class="relative">
+            <button 
+              (click)="toggleDropdown()"
+              class="flex items-center gap-2 px-2 py-1. 5 rounded-xl hover:bg-gray-100 transition focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <!-- Avatar -->
+              <div class="w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold overflow-hidden ring-2 ring-white shadow">
+                @if (getProfilePicture()) {
+                  <img [src]="getProfilePicture()" class="w-full h-full object-cover" alt="Profile">
+                } @else {
+                  {{ getUserInitial() }}
+                }
+              </div>
+              
+              <!-- User Info (Desktop) -->
+              <div class="hidden lg:block text-left">
+                <p class="text-sm font-semibold text-gray-900 leading-tight">{{ getUserName() }}</p>
+                <div class="flex items-center gap-1">
+                  <span class="text-xs px-1. 5 py-0.5 rounded-full font-medium" [ngClass]="getRoleBadge().class">
+                    {{ getRoleBadge().icon }} {{ getRoleBadge().label }}
+                  </span>
+                </div>
+              </div>
+              
+              <!-- Dropdown Arrow -->
+              <svg class="w-4 h-4 text-gray-400 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+
+            <!-- Dropdown Menu -->
+            @if (showDropdown()) {
+              <div class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl py-2 z-50 border border-gray-100 animate-fadeIn">
+                <!-- User Header -->
+                <div class="px-4 py-3 border-b border-gray-100">
+                  <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg overflow-hidden">
+                      @if (getProfilePicture()) {
+                        <img [src]="getProfilePicture()" class="w-full h-full object-cover" alt="Profile">
+                      } @else {
+                        {{ getUserInitial() }}
+                      }
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="font-semibold text-gray-900 truncate">{{ getFullName() }}</p>
+                      <p class="text-sm text-gray-500 truncate">{{ getUserEmail() }}</p>
+                      <span class="inline-flex items-center gap-1 mt-1 text-xs px-2 py-0.5 rounded-full font-medium" [ngClass]="getRoleBadge().class">
+                        {{ getRoleBadge().icon }} {{ getRoleBadge().label }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Admin Section -->
+                @if (isAdmin()) {
+                  <div class="py-1 border-b border-gray-100">
+                    <a routerLink="/admin" (click)="closeDropdown()" 
+                       class="flex items-center gap-3 px-4 py-2.5 text-purple-600 hover: bg-purple-50 transition">
+                      <span class="text-lg">👑</span>
+                      <div>
+                        <span class="font-medium">Admin Dashboard</span>
+                        <p class="text-xs text-purple-400">Manage stalls, users & more</p>
+                      </div>
+                    </a>
+                  </div>
+                }
+
+                <!-- Main Links -->
+                <div class="py-1">
+                  <a routerLink="/dashboard" (click)="closeDropdown()" 
+                     class="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition">
+                    <span class="text-lg">🏠</span>
+                    <span>Dashboard</span>
+                  </a>
+                  <a routerLink="/profile" (click)="closeDropdown()" 
+                     class="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition">
+                    <span class="text-lg">👤</span>
+                    <span>My Profile</span>
+                  </a>
+                  <a routerLink="/my-bids" (click)="closeDropdown()" 
+                     class="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover: bg-gray-50 transition">
+                    <span class="text-lg">🏷️</span>
+                    <span>My Bids</span>
+                  </a>
+                  <a routerLink="/stalls" (click)="closeDropdown()" 
+                     class="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover: bg-gray-50 transition">
+                    <span class="text-lg">🏪</span>
+                    <span>Browse Stalls</span>
+                  </a>
+                </div>
+
+                <!-- Bidder Application (for non-bidders) -->
+                @if (!isBidder()) {
+                  <div class="py-1 border-t border-gray-100">
+                    <a routerLink="/bidder-application/status" (click)="closeDropdown()" 
+                       class="flex items-center gap-3 px-4 py-2.5 text-yellow-600 hover: bg-yellow-50 transition">
+                      <span class="text-lg">📋</span>
+                      <div>
+                        <span class="font-medium">Become a Bidder</span>
+                        <p class="text-xs text-yellow-500">Apply to participate in auctions</p>
+                      </div>
+                    </a>
+                  </div>
+                }
+
+                <!-- Settings & Logout -->
+                <div class="py-1 border-t border-gray-100">
+                  <a routerLink="/profile/edit" (click)="closeDropdown()" 
+                     class="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition">
+                    <span class="text-lg">⚙️</span>
+                    <span>Settings</span>
+                  </a>
+                  <button 
+                    (click)="logout()"
+                    class="flex items-center gap-3 px-4 py-2.5 w-full text-left text-red-600 hover: bg-red-50 transition"
+                  >
+                    <span class="text-lg">🚪</span>
+                    <span>Logout</span>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <!-- Not Logged In -->
+          <a routerLink="/login" 
+             class="hidden sm:inline-flex px-4 py-2 text-gray-600 hover:text-blue-600 transition font-medium">
+            Login
+          </a>
+          <a routerLink="/signup" 
+             class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition shadow-sm">
+            Sign Up
+          </a>
+        }
+
+        <!-- Mobile Menu Button -->
+        <button 
+          (click)="toggleMobileMenu()"
+          class="md: hidden p-2 rounded-lg hover:bg-gray-100 transition focus:outline-none focus:ring-2 focus:ring-blue-500"
+          [attr.aria-expanded]="showMobileMenu()"
+          aria-label="Toggle menu"
+        >
+          @if (showMobileMenu()) {
+            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          } @else {
+            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  @if (showMobileMenu()) {
+    <div class="md:hidden bg-white border-t border-gray-200 shadow-lg animate-slideDown">
+      <div class="px-4 py-4 space-y-1">
+        <!-- Navigation Links -->
+        <a routerLink="/home" (click)="closeMobileMenu()" 
+           routerLinkActive="bg-blue-50 text-blue-600"
+           class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition">
+          <span class="text-xl">🏠</span>
+          <span class="font-medium">Home</span>
+        </a>
+        
+        @if (isLoggedIn()) {
+          <a routerLink="/stalls" (click)="closeMobileMenu()" 
+             routerLinkActive="bg-blue-50 text-blue-600"
+             class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition">
+            <span class="text-xl">🏪</span>
+            <span class="font-medium">Browse Stalls</span>
+          </a>
+          <a routerLink="/dashboard" (click)="closeMobileMenu()" 
+             routerLinkActive="bg-blue-50 text-blue-600"
+             class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition">
+            <span class="text-xl">📊</span>
+            <span class="font-medium">Dashboard</span>
+          </a>
+          <a routerLink="/my-bids" (click)="closeMobileMenu()" 
+             routerLinkActive="bg-blue-50 text-blue-600"
+             class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition">
+            <span class="text-xl">🏷️</span>
+            <span class="font-medium">My Bids</span>
+          </a>
+          <a routerLink="/profile" (click)="closeMobileMenu()" 
+             routerLinkActive="bg-blue-50 text-blue-600"
+             class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition">
+            <span class="text-xl">👤</span>
+            <span class="font-medium">Profile</span>
+          </a>
+          
+          <!-- Admin Link (Mobile) -->
+          @if (isAdmin()) {
+            <div class="pt-2 mt-2 border-t border-gray-200">
+              <a routerLink="/admin" (click)="closeMobileMenu()" 
+                 class="flex items-center gap-3 px-4 py-3 rounded-xl bg-purple-50 text-purple-600 hover:bg-purple-100 transition">
+                <span class="text-xl">👑</span>
+                <div>
+                  <span class="font-medium">Admin Panel</span>
+                  <p class="text-xs text-purple-400">Manage your platform</p>
+                </div>
+              </a>
+            </div>
+          }
+
+          <!-- Become Bidder (Mobile) -->
+          @if (!isBidder()) {
+            <a routerLink="/bidder-application/status" (click)="closeMobileMenu()" 
+               class="flex items-center gap-3 px-4 py-3 rounded-xl bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition">
+              <span class="text-xl">📋</span>
+              <span class="font-medium">Become a Bidder</span>
+            </a>
+          }
+          
+          <!-- Logout -->
+          <div class="pt-2 mt-2 border-t border-gray-200">
+            <button 
+              (click)="logout()"
+              class="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-red-600 hover: bg-red-50 transition"
+            >
+              <span class="text-xl">🚪</span>
+              <span class="font-medium">Logout</span>
+            </button>
+          </div>
+        } @else {
+          <!-- Guest Links (Mobile) -->
+          <div class="pt-2 mt-2 border-t border-gray-200 space-y-2">
+            <a routerLink="/login" (click)="closeMobileMenu()" 
+               class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 transition font-medium">
+              Login
+            </a>
+            <a routerLink="/signup" (click)="closeMobileMenu()" 
+               class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition font-medium">
+              Sign Up Free
+            </a>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</nav>
+
+<!-- Backdrop -->
+@if (showDropdown()) {
+  <div class="fixed inset-0 z-40" (click)="closeDropdown()"></div>
+}

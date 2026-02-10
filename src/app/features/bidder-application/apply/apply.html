@@ -1,0 +1,197 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-12 px-4">
+  <div class="max-w-2xl mx-auto">
+
+    <!-- Already Applied -->
+    @if (hasAlreadyApplied) {
+      <div class="bg-white rounded-2xl shadow-xl p-8 text-center">
+        <div class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <span class="text-4xl">📋</span>
+        </div>
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">Application Already Submitted</h1>
+        <p class="text-gray-600 mb-6">
+          You have already submitted a bidder application.  
+          @if (applicationStatus === 'PENDING') {
+            Your application is currently under review.
+          } @else if (applicationStatus === 'APPROVED') {
+            Your application has been approved!  You can now participate in auctions.
+          } @else if (applicationStatus === 'REJECTED') {
+            Unfortunately, your application was rejected.
+          }
+        </p>
+        <a routerLink="/bidder-application/status" class="btn-primary inline-block">
+          View Application Status
+        </a>
+      </div>
+    } @else {
+      <!-- Application Form -->
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        
+        <!-- Header -->
+        <div class="text-center mb-8">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
+            <span class="text-3xl">🎯</span>
+          </div>
+          <h1 class="text-2xl font-bold text-gray-900">Become a Bidder</h1>
+          <p class="text-gray-500 mt-2">Apply to participate in stall auctions</p>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="flex items-center justify-center mb-8">
+          @for (step of [1, 2]; track step) {
+            <div class="flex items-center">
+              <div [ngClass]="currentStep >= step ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600'"
+                   class="w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all">
+                @if (currentStep > step) {
+                  <span>✓</span>
+                } @else {
+                  {{ step }}
+                }
+              </div>
+              @if (step < 2) {
+                <div [ngClass]="currentStep > step ? 'bg-green-600' : 'bg-gray-200'" 
+                     class="w-24 h-1 mx-2 transition-all"></div>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="flex justify-between text-sm text-gray-500 mb-6 px-4">
+          <span>Personal Info</span>
+          <span>Application Details</span>
+        </div>
+
+        <!-- Error Message -->
+        @if (errorMessage) {
+          <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-lg">
+            {{ errorMessage }}
+          </div>
+        }
+
+        <!-- Form -->
+        <form [formGroup]="applicationForm" (ngSubmit)="onSubmit()">
+          
+          <!-- Step 1: Personal Info -->
+          @if (currentStep === 1) {
+            <div class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- College ID -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">College ID</label>
+                  <input type="text" formControlName="collageId" class="input-field bg-gray-100" readonly>
+                </div>
+
+                <!-- Name -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                  <input type="text" formControlName="studentName" class="input-field bg-gray-100" readonly>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Email -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                  <input type="email" formControlName="studentEmail" class="input-field bg-gray-100" readonly>
+                </div>
+
+                <!-- Phone -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                  <input type="tel" formControlName="phoneNumber" class="input-field" placeholder="Enter your phone number">
+                  @if (applicationForm.get('phoneNumber')?.invalid && applicationForm.get('phoneNumber')?.touched) {
+                    <p class="text-red-500 text-sm mt-1">Valid 10-digit phone number required</p>
+                  }
+                </div>
+              </div>
+
+              <div class="bg-blue-50 rounded-lg p-4 text-sm text-blue-700">
+                <p>📌 Your personal details are pre-filled from your profile.  Phone number can be updated if needed.</p>
+              </div>
+
+              <button type="button" (click)="nextStep()" 
+                class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+                Continue →
+              </button>
+            </div>
+          }
+
+          <!-- Step 2: Application Details -->
+          @if (currentStep === 2) {
+            <div class="space-y-4">
+              <!-- Preferred Category -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Preferred Stall Category *</label>
+                <select formControlName="preferredStallCategory" class="input-field">
+                  <option value="">Select a category</option>
+                  @for (category of categories; track category) {
+                    <option [value]="category">{{ category }}</option>
+                  }
+                </select>
+                @if (applicationForm.get('preferredStallCategory')?.invalid && applicationForm. get('preferredStallCategory')?.touched) {
+                  <p class="text-red-500 text-sm mt-1">Please select a category</p>
+                }
+              </div>
+
+              <!-- Reason -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Why do you want to become a bidder?  *
+                  <span class="text-gray-400 font-normal">(min 50 characters)</span>
+                </label>
+                <textarea 
+                  formControlName="reason" 
+                  class="input-field" 
+                  rows="4"
+                  placeholder="Tell us about your interest in running a stall, your experience (if any), and what kind of stall you'd like to bid on..."
+                ></textarea>
+                @if (applicationForm.get('reason')?.invalid && applicationForm.get('reason')?.touched) {
+                  <p class="text-red-500 text-sm mt-1">Please provide at least 50 characters</p>
+                }
+                <p class="text-sm text-gray-500 mt-1">
+                  {{ applicationForm.get('reason')?.value?.length || 0 }} / 50 characters minimum
+                </p>
+              </div>
+
+              <!-- Terms -->
+              <div class="bg-gray-50 rounded-lg p-4">
+                <label class="flex items-start cursor-pointer">
+                  <input type="checkbox" formControlName="termsAccepted" class="mt-1 mr-3 w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500">
+                  <span class="text-sm text-gray-700">
+                    I agree to the <a href="#" class="text-blue-600 hover:underline">Terms and Conditions</a> and confirm that: 
+                    <ul class="list-disc ml-5 mt-2 text-gray-500">
+                      <li>All information provided is accurate</li>
+                      <li>I will comply with all bidding rules</li>
+                      <li>I understand that winning a bid is a commitment</li>
+                    </ul>
+                  </span>
+                </label>
+              </div>
+
+              <div class="flex gap-4 mt-6">
+                <button type="button" (click)="prevStep()" class="flex-1 btn-outline">
+                  ← Back
+                </button>
+                <button type="submit" [disabled]="applicationForm.invalid || isLoading" class="flex-1 btn-success">
+                  @if (isLoading) {
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Submitting...
+                  } @else {
+                    Submit Application ✓
+                  }
+                </button>
+              </div>
+            </div>
+          }
+        </form>
+
+        <!-- Help Text -->
+        <p class="text-center mt-6 text-gray-500 text-sm">
+          Need help? Contact us at <a href="mailto:support@bidmart.com" class="text-blue-600 hover:underline">support&#64;bidmart. com</a>
+        </p>
+      </div>
+    }
+  </div>
+</div>

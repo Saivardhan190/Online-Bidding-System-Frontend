@@ -1,0 +1,168 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-4xl mx-auto px-4">
+    
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">My Profile</h1>
+      <p class="text-gray-600 mt-1">Manage your account information</p>
+    </div>
+
+    @if (user) {
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Profile Card -->
+        <div class="lg:col-span-1">
+          <div class="bg-white rounded-2xl shadow-lg p-6 text-center">
+            <!-- Avatar -->
+            <div class="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mb-4 overflow-hidden">
+              @if (user.profilePicture) {
+                <img [src]="user. profilePicture" class="w-full h-full object-cover">
+              } @else {
+                <span class="text-5xl text-white font-bold">
+                  {{ user.studentName. charAt(0).toUpperCase() }}
+                </span>
+              }
+            </div>
+            
+            <!-- Name & Role -->
+            <h2 class="text-xl font-bold text-gray-900">{{ user.studentName }}</h2>
+            <p class="text-gray-500 mb-3">{{ user.studentEmail }}</p>
+            
+            <!-- Role Badge -->
+            <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium" [ngClass]="getRoleBadgeClass()">
+              <span class="mr-2">{{ getRoleIcon() }}</span>
+              {{ user. role }}
+            </span>
+
+            <!-- Edit Button -->
+            <div class="mt-6">
+              <a routerLink="/profile/edit" class="btn-outline w-full block text-center ! py-2">
+                ✏️ Edit Profile
+              </a>
+            </div>
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="bg-white rounded-2xl shadow-lg p-6 mt-6">
+            <h3 class="font-semibold text-gray-900 mb-4">Account Status</h3>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-gray-600">Email Verified</span>
+                @if (user. emailVerified) {
+                  <span class="text-green-600 font-medium">✅ Yes</span>
+                } @else {
+                  <span class="text-red-600 font-medium">❌ No</span>
+                }
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-gray-600">Account Status</span>
+                <span class="text-green-600 font-medium">🟢 Active</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Details Card -->
+        <div class="lg:col-span-2">
+          <div class="bg-white rounded-2xl shadow-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-6">Personal Information</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Full Name -->
+              <div>
+                <label class="block text-sm font-medium text-gray-500 mb-1">Full Name</label>
+                <p class="text-gray-900 font-medium">{{ user.studentName }}</p>
+              </div>
+
+              <!-- Email -->
+              <div>
+                <label class="block text-sm font-medium text-gray-500 mb-1">Email Address</label>
+                <p class="text-gray-900 font-medium">{{ user.studentEmail }}</p>
+              </div>
+
+              <!-- College ID -->
+              <div>
+                <label class="block text-sm font-medium text-gray-500 mb-1">College ID</label>
+                <p class="text-gray-900 font-medium">{{ user.collageId }}</p>
+              </div>
+
+              <!-- Phone -->
+              <div>
+                <label class="block text-sm font-medium text-gray-500 mb-1">Phone Number</label>
+                <p class="text-gray-900 font-medium">{{ user.phone || 'Not provided' }}</p>
+              </div>
+
+              <!-- Department -->
+              <div>
+                <label class="block text-sm font-medium text-gray-500 mb-1">Department</label>
+                <p class="text-gray-900 font-medium">{{ user.department }}</p>
+              </div>
+
+              <!-- Year -->
+              <div>
+                <label class="block text-sm font-medium text-gray-500 mb-1">Year</label>
+                <p class="text-gray-900 font-medium">{{ user.year }}{{ user.year === 1 ? 'st' : user.year === 2 ? 'nd' : user.year === 3 ? 'rd' : 'th' }} Year</p>
+              </div>
+
+              <!-- Gender -->
+              <div>
+                <label class="block text-sm font-medium text-gray-500 mb-1">Gender</label>
+                <p class="text-gray-900 font-medium">{{ user.gender }}</p>
+              </div>
+
+              <!-- Address -->
+              <div>
+                <label class="block text-sm font-medium text-gray-500 mb-1">Address</label>
+                <p class="text-gray-900 font-medium">{{ user.address || 'Not provided' }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions Card -->
+          <div class="bg-white rounded-2xl shadow-lg p-6 mt-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <a routerLink="/my-bids" class="flex items-center p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition">
+                <span class="text-2xl mr-3">🏷️</span>
+                <div>
+                  <p class="font-medium text-gray-900">My Bids</p>
+                  <p class="text-sm text-gray-500">View your bidding history</p>
+                </div>
+              </a>
+              
+              @if (user.role === 'USER') {
+                <a routerLink="/bidder-application/apply" class="flex items-center p-4 bg-green-50 rounded-xl hover:bg-green-100 transition">
+                  <span class="text-2xl mr-3">📋</span>
+                  <div>
+                    <p class="font-medium text-gray-900">Become a Bidder</p>
+                    <p class="text-sm text-gray-500">Apply to participate in auctions</p>
+                  </div>
+                </a>
+              }
+              
+              <a routerLink="/stalls" class="flex items-center p-4 bg-yellow-50 rounded-xl hover:bg-yellow-100 transition">
+                <span class="text-2xl mr-3">🏪</span>
+                <div>
+                  <p class="font-medium text-gray-900">Browse Stalls</p>
+                  <p class="text-sm text-gray-500">Explore available stalls</p>
+                </div>
+              </a>
+              
+              <a routerLink="/profile/edit" class="flex items-center p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition">
+                <span class="text-2xl mr-3">⚙️</span>
+                <div>
+                  <p class="font-medium text-gray-900">Settings</p>
+                  <p class="text-sm text-gray-500">Update profile & password</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div class="text-center py-12">
+        <p class="text-gray-500">Loading profile... </p>
+      </div>
+    }
+  </div>
+</div>
