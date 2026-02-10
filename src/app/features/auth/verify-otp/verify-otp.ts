@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../../core/services/auth';
 
 @Component({
@@ -24,7 +25,8 @@ export class VerifyOtp implements OnInit, OnDestroy {
   constructor(
     private authService:  AuthService,
     private router: Router,
-    private route:  ActivatedRoute
+    private route:  ActivatedRoute,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
@@ -79,7 +81,10 @@ export class VerifyOtp implements OnInit, OnDestroy {
   }
 
   verifyOtp(): void {
-    if (this.otp.length !== 6) return;
+    if (this.otp.length !== 6) {
+      this.toastr.warning('Please enter a valid 6-digit OTP', 'Invalid OTP');
+      return;
+    }
 
     this. isLoading = true;
     this. errorMessage = '';
@@ -88,14 +93,18 @@ export class VerifyOtp implements OnInit, OnDestroy {
       next: (response) => {
         this. isLoading = false;
         if (response.success) {
+          this.toastr.success('OTP verified successfully! Redirecting...', 'Success');
           this. router.navigate(['/dashboard']);
         } else {
           this. errorMessage = response. message || 'Invalid OTP';
+          this.toastr.error(this.errorMessage, 'Verification Failed');
         }
       },
       error:  (error) => {
         this.isLoading = false;
-        this.errorMessage = error.error?.message || 'Invalid OTP.  Please try again.';
+        const errorMsg = error.error?.message || 'Invalid OTP.  Please try again.';
+        this.errorMessage = errorMsg;
+        this.toastr.error(errorMsg, 'Error');
       }
     });
   }
@@ -109,6 +118,7 @@ export class VerifyOtp implements OnInit, OnDestroy {
         this. isResending = false;
         if (response.success) {
           this.successMessage = 'OTP sent successfully!';
+          this.toastr.success('OTP sent to your email!', 'OTP Resent');
           this.countdown = 60;
           this.startCountdown();
           setTimeout(() => this.successMessage = '', 3000);
@@ -116,7 +126,9 @@ export class VerifyOtp implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isResending = false;
-        this.errorMessage = error.error?.message || 'Failed to resend OTP';
+        const errorMsg = error.error?.message || 'Failed to resend OTP';
+        this.errorMessage = errorMsg;
+        this.toastr.error(errorMsg, 'Error');
       }
     });
   }

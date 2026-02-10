@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../../core/services/auth';
 
 @Component({
@@ -20,7 +21,8 @@ export class ForgotPassword {
   constructor(
     private fb: FormBuilder,
     private authService:  AuthService,
-    private router: Router
+    private router: Router,
+    private toastr: ToastrService
   ) {
     this.forgotForm = this.fb. group({
       studentEmail: ['', [Validators.required, Validators.email]]
@@ -28,7 +30,10 @@ export class ForgotPassword {
   }
 
   onSubmit(): void {
-    if (this.forgotForm. invalid) return;
+    if (this.forgotForm. invalid) {
+      this.toastr.warning('Please enter a valid email address', 'Invalid Email');
+      return;
+    }
 
     this.isLoading = true;
     this.errorMessage = '';
@@ -39,6 +44,8 @@ export class ForgotPassword {
         this.isLoading = false;
         if (response.success) {
           this. successMessage = 'OTP sent successfully!';
+          this.toastr.success('OTP has been sent to your email!', 'Email Sent');
+          this.toastr.info('Redirecting to reset password page...', 'Info');
           setTimeout(() => {
             this.router.navigate(['/reset-password'], {
               queryParams:  { email: this.forgotForm. get('studentEmail')?.value }
@@ -46,11 +53,14 @@ export class ForgotPassword {
           }, 1500);
         } else {
           this. errorMessage = response. message || 'Failed to send OTP';
+          this.toastr.error(this.errorMessage, 'Request Failed');
         }
       },
       error:  (error) => {
         this.isLoading = false;
-        this.errorMessage = error.error?.message || 'Email not found. Please check and try again.';
+        const errorMsg = error.error?.message || 'Email not found. Please check and try again.';
+        this.errorMessage = errorMsg;
+        this.toastr.error(errorMsg, 'Error');
       }
     });
   }
