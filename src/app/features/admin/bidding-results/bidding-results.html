@@ -24,7 +24,31 @@
       </div>
     </div>
 
-    <!-- Search -->
+    <!-- Tabs -->
+    <div class="bg-white rounded-xl shadow-lg mb-6 overflow-hidden">
+      <div class="flex border-b">
+        <button
+          (click)="activeTab = 'results'"
+          [ngClass]="activeTab === 'results' ? 'border-b-2 border-blue-600 text-blue-600 bg-blue-50' : 'text-gray-500 hover:bg-gray-50'"
+          class="flex-1 px-6 py-4 font-medium transition"
+        >
+          🏆 Winners
+        </button>
+        <button
+          (click)="activeTab = 'closed'"
+          [ngClass]="activeTab === 'closed' ? 'border-b-2 border-blue-600 text-blue-600 bg-blue-50' : 'text-gray-500 hover:bg-gray-50'"
+          class="flex-1 px-6 py-4 font-medium transition"
+        >
+          📋 Declare Winners
+          @if (closedStalls.length > 0) {
+            <span class="ml-2 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">{{ closedStalls.length }}</span>
+          }
+        </button>
+      </div>
+    </div>
+
+    <!-- Search (only for results tab) -->
+    @if (activeTab === 'results') {
     <div class="bg-white rounded-xl shadow-lg mb-6">
       <div class="p-4 border-b">
         <div class="relative">
@@ -83,5 +107,54 @@
         }
       </div>
     </div>
+    }
+
+    <!-- Closed Stalls Awaiting Winner Declaration -->
+    @if (activeTab === 'closed') {
+      <div class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-6">Closed Auctions - Declare Winners</h2>
+        
+        @if (closedStalls.length > 0) {
+          <div class="space-y-4">
+            @for (stall of closedStalls; track stall.stallId) {
+              <div class="flex flex-col md:flex-row md:items-center justify-between p-4 bg-orange-50 rounded-xl border border-orange-200">
+                <div class="flex items-center mb-4 md:mb-0">
+                  <div class="w-14 h-14 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center mr-4">
+                    <span class="text-2xl">📋</span>
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-gray-900">{{ stall.stallName }}</h3>
+                    <p class="text-sm text-gray-500">Stall #{{ stall.stallNo }}</p>
+                    <p class="text-xs text-gray-400">Status: {{ stall.status }}</p>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                  <div class="text-right">
+                    <p class="text-xs text-gray-500">Highest Bid</p>
+                    <p class="text-xl font-bold text-green-600">₹{{ stall.currentHighestBid || stall.basePrice | number }}</p>
+                    <p class="text-xs text-gray-500">{{ stall.totalBids || 0 }} total bids</p>
+                  </div>
+                  <button 
+                    (click)="declareWinner(stall.stallId)"
+                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold flex items-center gap-2"
+                  >
+                    <span>👑</span>
+                    <span>Declare Winner</span>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="text-center py-12">
+            <span class="text-6xl block mb-4">✅</span>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">All Winners Declared</h3>
+            <p class="text-gray-500">There are no closed auctions pending winner declaration.</p>
+          </div>
+        }
+      </div>
+    }
+
   </div>
 </div>
