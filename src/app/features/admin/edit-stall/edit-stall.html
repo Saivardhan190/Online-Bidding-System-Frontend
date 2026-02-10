@@ -1,0 +1,260 @@
+<div class="min-h-screen bg-gray-100 py-8">
+  <div class="max-w-3xl mx-auto px-4">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <a routerLink="/admin/stalls" class="text-blue-600 hover:underline mb-2 inline-block">← Back to Stalls</a>
+      <h1 class="text-3xl font-bold text-gray-900">Edit Stall ✏️</h1>
+      <p class="text-gray-600 mt-1">Update stall details</p>
+    </div>
+
+    <!-- Loading State -->
+    @if (isLoading && !originalStall) {
+      <div class="bg-white rounded-2xl shadow-lg p-8 text-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <p class="text-gray-600 mt-4">Loading stall details...</p>
+      </div>
+    }
+
+    <!-- Form -->
+    @if (originalStall) {
+      <div class="bg-white rounded-2xl shadow-lg p-8">
+        
+        <!-- Messages -->
+        @if (successMessage) {
+          <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-r-lg">
+            ✅ {{ successMessage }}
+          </div>
+        }
+
+        @if (errorMessage) {
+          <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-lg">
+            ❌ {{ errorMessage }}
+          </div>
+        }
+
+        <form [formGroup]="stallForm" (ngSubmit)="onSubmit()">
+          
+          <!-- Image Upload -->
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Stall Image (Optional, max 100KB)</label>
+            <div class="flex items-center gap-4">
+              @if (imagePreview) {
+                <div class="relative">
+                  <img [src]="imagePreview" class="w-32 h-32 object-cover rounded-xl" alt="Preview">
+                  <button 
+                    type="button"
+                    (click)="removeImage()"
+                    class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600">
+                    ×
+                  </button>
+                </div>
+              } @else {
+                <label class="w-32 h-32 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
+                  <span class="text-3xl mb-1">📷</span>
+                  <span class="text-xs text-gray-500">Upload Image</span>
+                  <input type="file" accept="image/*" (change)="onImageSelected($event)" class="hidden">
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- Basic Details Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            
+            <!-- Stall Number -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Stall Number <span class="text-red-500">*</span>
+              </label>
+              <input 
+                type="number" 
+                formControlName="stallNo"
+                class="input-field"
+                placeholder="e.g., 101"
+              />
+              @if (stallForm.get('stallNo')?.touched && stallForm.get('stallNo')?.invalid) {
+                <p class="text-red-500 text-sm mt-1">Required (min 1)</p>
+              }
+            </div>
+
+            <!-- Category -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Category <span class="text-red-500">*</span>
+              </label>
+              <select formControlName="category" class="input-field">
+                <option value="">Select category</option>
+                @for (cat of categories; track cat) {
+                  <option [value]="cat">{{ cat }}</option>
+                }
+              </select>
+              @if (stallForm.get('category')?.touched && stallForm.get('category')?.invalid) {
+                <p class="text-red-500 text-sm mt-1">Required</p>
+              }
+            </div>
+
+          </div>
+
+          <!-- Stall Name -->
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Stall Name <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              formControlName="stallName"
+              class="input-field"
+              placeholder="e.g., Tech Hub"
+            />
+            @if (stallForm.get('stallName')?.touched && stallForm.get('stallName')?.invalid) {
+              <p class="text-red-500 text-sm mt-1">Required (min 3 characters)</p>
+            }
+          </div>
+
+          <!-- Description -->
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Description <span class="text-red-500">*</span>
+            </label>
+            <textarea 
+              formControlName="description"
+              rows="4"
+              class="input-field"
+              placeholder="Describe the stall in detail..."
+            ></textarea>
+            @if (stallForm.get('description')?.touched && stallForm.get('description')?.invalid) {
+              <p class="text-red-500 text-sm mt-1">Required (min 10 characters)</p>
+            }
+          </div>
+
+          <!-- Location -->
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Location <span class="text-red-500">*</span>
+            </label>
+            <select formControlName="location" class="input-field">
+              <option value="">Select location</option>
+              @for (loc of locations; track loc) {
+                <option [value]="loc">{{ loc }}</option>
+              }
+            </select>
+            @if (stallForm.get('location')?.touched && stallForm.get('location')?.invalid) {
+              <p class="text-red-500 text-sm mt-1">Required</p>
+            }
+          </div>
+
+          <!-- Price Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            
+            <!-- Base Price -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Base Price <span class="text-red-500">*</span>
+              </label>
+              <input 
+                type="number" 
+                formControlName="basePrice"
+                class="input-field"
+                placeholder="₹ 1000"
+              />
+              @if (stallForm.get('basePrice')?.touched && stallForm.get('basePrice')?.invalid) {
+                <p class="text-red-500 text-sm mt-1">Min ₹100</p>
+              }
+            </div>
+
+            <!-- Original Price -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Original Price <span class="text-red-500">*</span>
+              </label>
+              <input 
+                type="number" 
+                formControlName="originalPrice"
+                class="input-field"
+                placeholder="₹ 2000"
+              />
+              @if (stallForm.get('originalPrice')?.touched && stallForm.get('originalPrice')?.invalid) {
+                <p class="text-red-500 text-sm mt-1">Min ₹100</p>
+              }
+            </div>
+
+            <!-- Max Bidders -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Max Bidders
+              </label>
+              <input 
+                type="number" 
+                formControlName="maxBidders"
+                class="input-field"
+                placeholder="10"
+              />
+            </div>
+
+          </div>
+
+          <!-- Date Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            
+            <!-- Bidding Start -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Bidding Start <span class="text-red-500">*</span>
+              </label>
+              <input 
+                type="datetime-local" 
+                formControlName="biddingStart"
+                class="input-field"
+                [min]="getMinDateTime()"
+              />
+              @if (stallForm.get('biddingStart')?.touched && stallForm.get('biddingStart')?.invalid) {
+                <p class="text-red-500 text-sm mt-1">Required</p>
+              }
+            </div>
+
+            <!-- Bidding End -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Bidding End <span class="text-red-500">*</span>
+              </label>
+              <input 
+                type="datetime-local" 
+                formControlName="biddingEnd"
+                class="input-field"
+                [min]="getMinDateTime()"
+              />
+              @if (stallForm.get('biddingEnd')?.touched && stallForm.get('biddingEnd')?.invalid) {
+                <p class="text-red-500 text-sm mt-1">Required</p>
+              }
+            </div>
+
+          </div>
+
+          <!-- Submit Button -->
+          <div class="flex gap-4">
+            <button 
+              type="submit"
+              [disabled]="isLoading"
+              class="btn-primary flex-1"
+            >
+              @if (isLoading) {
+                <span>Updating...</span>
+              } @else {
+                <span>✅ Update Stall</span>
+              }
+            </button>
+            <a 
+              routerLink="/admin/stalls"
+              class="btn-outline flex-1 text-center"
+            >
+              Cancel
+            </a>
+          </div>
+
+        </form>
+      </div>
+    }
+
+  </div>
+</div>

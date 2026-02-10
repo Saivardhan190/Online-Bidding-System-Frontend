@@ -84,43 +84,53 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
-  // Live Bidding (Bidders Only)
+  // Live Bidding (Bidders Only) - support both paths
+  {
+    path: 'bidding/:stallId',
+    loadComponent: () => import('./features/stalls/live-bidding/live-bidding').then(m => m.LiveBidding),
+    canActivate: [authGuard, bidderGuard]
+  },
   {
     path: 'live-bidding/:id',
     loadComponent: () => import('./features/stalls/live-bidding/live-bidding').then(m => m.LiveBidding),
-    canActivate: [bidderGuard]
+    canActivate: [authGuard, bidderGuard]
   },
 
   // Admin Routes
   {
     path: 'admin',
     loadComponent: () => import('./features/admin/admin-dashboard/admin-dashboard').then(m => m.AdminDashboard),
-    canActivate: [adminGuard]
+    canActivate: [authGuard, adminGuard]
   },
   {
     path: 'admin/applications',
     loadComponent: () => import('./features/admin/manage-applications/manage-applications').then(m => m.ManageApplications),
-    canActivate: [adminGuard]
+    canActivate: [authGuard, adminGuard]
   },
   {
     path: 'admin/stalls',
     loadComponent: () => import('./features/admin/manage-stalls/manage-stalls').then(m => m.ManageStalls),
-    canActivate:  [adminGuard]
+    canActivate: [authGuard, adminGuard]
   },
   {
-    path:  'admin/stalls/create',
-    loadComponent: () => import('./features/admin/create-stall/create-stall').then(m => m. CreateStall),
-    canActivate: [adminGuard]
+    path: 'admin/stalls/create',
+    loadComponent: () => import('./features/admin/create-stall/create-stall').then(m => m.CreateStall),
+    canActivate: [authGuard, adminGuard]
+  },
+  {
+    path: 'admin/stalls/edit/:id',
+    loadComponent: () => import('./features/admin/edit-stall/edit-stall').then(m => m.EditStall),
+    canActivate: [authGuard, adminGuard]
   },
   {
     path: 'admin/users',
     loadComponent: () => import('./features/admin/manage-users/manage-users').then(m => m.ManageUsers),
-    canActivate: [adminGuard]
+    canActivate: [authGuard, adminGuard]
   },
   {
     path: 'admin/results',
-    loadComponent: () => import('./features/admin/bidding-results/bidding-results').then(m => m. BiddingResults),
-    canActivate: [adminGuard]
+    loadComponent: () => import('./features/admin/bidding-results/bidding-results').then(m => m.BiddingResults),
+    canActivate: [authGuard, adminGuard]
   },
   // Add this route
   {
@@ -128,6 +138,34 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/oauth-callback/oauth-callback').then(m => m.OAuthCallback)
   },
 
-  // Fallback - redirect unknown routes to home
-  { path: '**', redirectTo: 'home' }
+  // Notifications
+  {
+    path: 'notifications',
+    loadComponent: () => import('./features/notifications/notifications').then(m => m.Notifications),
+    canActivate: [authGuard]
+  },
+
+  // Settings
+  {
+    path: 'settings',
+    loadComponent: () => import('./features/settings/settings').then(m => m.Settings),
+    canActivate: [authGuard]
+  },
+
+  // Error Pages
+  {
+    path: '404',
+    loadComponent: () => import('./features/error-pages/not-found/not-found').then(m => m.NotFound)
+  },
+  {
+    path: '403',
+    loadComponent: () => import('./features/error-pages/forbidden/forbidden').then(m => m.Forbidden)
+  },
+  {
+    path: '500',
+    loadComponent: () => import('./features/error-pages/server-error/server-error').then(m => m.ServerError)
+  },
+
+  // Fallback - redirect unknown routes to 404
+  { path: '**', redirectTo: '/404' }
 ];
