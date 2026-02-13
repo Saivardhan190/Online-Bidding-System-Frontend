@@ -1,270 +1,239 @@
-<div class="min-h-screen bg-gray-50 py-8">
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-8">
   <div class="max-w-7xl mx-auto px-4">
 
-    <!-- Welcome Header -->
+    <!-- Modern Welcome Header -->
     <div class="mb-8">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 class="text-3xl font-bold text-gray-900">
-            {{ getGreeting() }}, {{ getFirstName() }}! 👋
-          </h1>
-          <p class="text-gray-600 mt-1">Welcome to your BidMart dashboard</p>
-        </div>
-        <div class="mt-4 md:mt-0 flex items-center space-x-3">
-          <span class="px-4 py-2 rounded-full text-sm font-medium" [ngClass]="getRoleBadgeClass()">
-            {{ user?. role || 'USER' }}
-          </span>
-          @if (user?.role === 'USER') {
-            <a routerLink="/bidder-application/apply" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition text-sm">
-              Become a Bidder →
-            </a>
-          }
-        </div>
-      </div>
-    </div>
-
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      <!-- Total Bids -->
-      <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-gray-500">Total Bids</p>
-            <p class="text-3xl font-bold text-gray-900">{{ stats.totalBids }}</p>
-          </div>
-          <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-            <span class="text-2xl">🏷️</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Active Bids -->
-      <div class="bg-white rounded-xl shadow-lg p-6 hover: shadow-xl transition">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-gray-500">Active Bids</p>
-            <p class="text-3xl font-bold text-green-600">{{ stats.activeBids }}</p>
-          </div>
-          <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-            <span class="text-2xl">🔴</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Won Auctions -->
-      <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-gray-500">Won Auctions</p>
-            <p class="text-3xl font-bold text-yellow-600">{{ stats.wonAuctions }}</p>
-          </div>
-          <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-            <span class="text-2xl">🏆</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Total Spent -->
-      <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-gray-500">Total Spent</p>
-            <p class="text-3xl font-bold text-purple-600">
-              ₹{{ stats.totalSpent | number }}
-            </p>
-          </div>
-          <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-            <span class="text-2xl">💰</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      
-      <!-- Left Column:  Quick Actions & Recent Bids -->
-      <div class="lg:col-span-2 space-y-8">
+      <div class="bg-white rounded-2xl shadow-xl p-8 relative overflow-hidden">
+        <!-- Background Pattern -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full opacity-10 -mr-32 -mt-32"></div>
         
-        <!-- Quick Actions -->
-        <div class="bg-white rounded-xl shadow-lg p-6">
-          <h2 class="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <a routerLink="/stalls" class="flex flex-col items-center p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition">
-              <span class="text-3xl mb-2">🏪</span>
-              <span class="text-sm font-medium text-gray-700">Browse Stalls</span>
-            </a>
-            <a routerLink="/my-bids" class="flex flex-col items-center p-4 bg-green-50 rounded-xl hover:bg-green-100 transition">
-              <span class="text-3xl mb-2">🏷️</span>
-              <span class="text-sm font-medium text-gray-700">My Bids</span>
-            </a>
-            <a routerLink="/profile" class="flex flex-col items-center p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition">
-              <span class="text-3xl mb-2">👤</span>
-              <span class="text-sm font-medium text-gray-700">Profile</span>
-            </a>
+        <div class="relative flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">
+              {{ getGreeting() }}, <span class="text-blue-600">{{ getFirstName() }}</span>!
+            </h1>
+            <p class="text-gray-600 text-lg">Welcome back to your BidMart dashboard</p>
+          </div>
+          <div class="mt-4 md:mt-0 flex items-center space-x-3">
+            <span class="px-5 py-2.5 rounded-full text-sm font-bold shadow-lg" [ngClass]="getRoleBadgeClass()">
+              {{ user?.role || 'USER' }}
+            </span>
             @if (user?.role === 'USER') {
-              <a routerLink="/bidder-application/status" class="flex flex-col items-center p-4 bg-yellow-50 rounded-xl hover:bg-yellow-100 transition">
-                <span class="text-3xl mb-2">📋</span>
-                <span class="text-sm font-medium text-gray-700">Application</span>
-              </a>
-            } @else if (user?.role === 'ADMIN') {
-              <a routerLink="/admin" class="flex flex-col items-center p-4 bg-red-50 rounded-xl hover:bg-red-100 transition">
-                <span class="text-3xl mb-2">⚙️</span>
-                <span class="text-sm font-medium text-gray-700">Admin Panel</span>
-              </a>
-            } @else {
-              <a routerLink="/stalls" class="flex flex-col items-center p-4 bg-yellow-50 rounded-xl hover:bg-yellow-100 transition">
-                <span class="text-3xl mb-2">🎯</span>
-                <span class="text-sm font-medium text-gray-700">Start Bidding</span>
+              <a routerLink="/bidder-application/apply" 
+                 class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2.5 rounded-full font-bold hover:from-blue-700 hover:to-indigo-700 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2">
+                <span>✨</span>
+                <span>Become a Bidder</span>
               </a>
             }
           </div>
         </div>
+      </div>
+    </div>
 
-        <!-- Recent Bids -->
-        <div class="bg-white rounded-xl shadow-lg p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-bold text-gray-900">Recent Bids</h2>
-            <a routerLink="/my-bids" class="text-blue-600 hover:underline text-sm">View All →</a>
+    <!-- Modern Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <!-- Total Bids -->
+      <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 transition-all duration-300 cursor-pointer hover:shadow-2xl">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-14 h-14 bg-white/20 backdrop-blur-lg rounded-2xl flex items-center justify-center">
+            <span class="text-3xl">🏷️</span>
           </div>
-
-          @if (bidsLoading) {
-            <div class="flex justify-center py-8">
-              <div class="w-8 h-8 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
-            </div>
-          } @else if (recentBids.length > 0) {
-            <div class="space-y-4">
-              @for (bid of recentBids; track bid.bidId) {
-                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                  <div class="flex items-center">
-                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-                      <span class="text-xl">🏪</span>
-                    </div>
-                    <div>
-                      <!-- ✅ Fixed:  Use getBidStallName helper -->
-                      <p class="font-medium text-gray-900">{{ getBidStallName(bid) }}</p>
-                      <p class="text-sm text-gray-500">{{ formatDate(bid.bidTime) }}</p>
-                    </div>
-                  </div>
-                  <div class="text-right">
-                    <p class="font-bold text-green-600">₹{{ bid.biddedPrice | number }}</p>
-                    <span class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full">
-                      {{ bid.status || 'Active' }}
-                    </span>
-                  </div>
-                </div>
-              }
-            </div>
-          } @else {
-            <div class="text-center py-8">
-              <span class="text-4xl block mb-2">🏷️</span>
-              <p class="text-gray-500 mb-2">No bids yet</p>
-              <p class="text-sm text-gray-400 mb-4">Start bidding to see your activity here</p>
-              <a routerLink="/stalls" class="text-blue-600 hover:underline text-sm">Browse Stalls →</a>
-            </div>
-          }
+          <div class="text-right">
+            <p class="text-sm opacity-90 font-medium">Total Bids</p>
+            <p class="text-4xl font-bold">{{ stats.totalBids }}</p>
+          </div>
+        </div>
+        <div class="h-2 bg-white/20 rounded-full overflow-hidden">
+          <div class="h-full bg-white rounded-full" style="width: 100%"></div>
         </div>
       </div>
 
-      <!-- Right Column:  Active Auctions & Tips -->
-      <div class="space-y-8">
-        
-        <!-- Active Auctions -->
-        <div class="bg-white rounded-xl shadow-lg p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-bold text-gray-900">🔴 Live Auctions</h2>
-            <a routerLink="/stalls" class="text-blue-600 hover:underline text-sm">View All</a>
+      <!-- Active Bids -->
+      <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 transition-all duration-300 cursor-pointer hover:shadow-2xl">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-14 h-14 bg-white/20 backdrop-blur-lg rounded-2xl flex items-center justify-center animate-pulse">
+            <span class="text-3xl">🔴</span>
           </div>
-
-          @if (auctionsLoading) {
-            <div class="flex justify-center py-6">
-              <div class="w-8 h-8 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
-            </div>
-          } @else if (activeAuctions.length > 0) {
-            <div class="space-y-4">
-              @for (stall of activeAuctions; track stall.stallId) {
-                <a [routerLink]="['/stalls', stall.stallId]" class="block p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg hover:shadow-md transition">
-                  <div class="flex items-center justify-between mb-2">
-                    <p class="font-medium text-gray-900">{{ stall.stallName }}</p>
-                    <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full animate-pulse">Live</span>
-                  </div>
-                  <div class="flex items-center justify-between text-sm">
-                    <span class="text-gray-500">Current Bid</span>
-                    <span class="font-bold text-green-600">₹{{ stall.currentHighestBid | number }}</span>
-                  </div>
-                  <div class="flex items-center justify-between text-sm mt-1">
-                    <span class="text-gray-500">Total Bids</span>
-                    <span class="text-gray-700">{{ stall. totalBids }}</span>
-                  </div>
-                </a>
-              }
-            </div>
-          } @else {
-            <div class="text-center py-6">
-              <span class="text-3xl block mb-2">😴</span>
-              <p class="text-gray-500 text-sm">No active auctions right now</p>
-              <p class="text-xs text-gray-400 mt-1">Check back later for new opportunities</p>
-            </div>
-          }
+          <div class="text-right">
+            <p class="text-sm opacity-90 font-medium">Active Bids</p>
+            <p class="text-4xl font-bold">{{ stats.activeBids }}</p>
+          </div>
         </div>
-
-        <!-- Tips Card -->
-        <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl shadow-lg p-6 text-white">
-          <h3 class="font-bold text-lg mb-3">💡 Bidding Tips</h3>
-          <ul class="space-y-2 text-blue-100 text-sm">
-            <li class="flex items-start">
-              <span class="mr-2">✓</span>
-              <span>Set a budget and stick to it</span>
-            </li>
-            <li class="flex items-start">
-              <span class="mr-2">✓</span>
-              <span>Watch auctions before bidding</span>
-            </li>
-            <li class="flex items-start">
-              <span class="mr-2">✓</span>
-              <span>Bid in the last minutes for best deals</span>
-            </li>
-            <li class="flex items-start">
-              <span class="mr-2">✓</span>
-              <span>Enable notifications to stay updated</span>
-            </li>
-          </ul>
+        <div class="h-2 bg-white/20 rounded-full overflow-hidden">
+          <div class="h-full bg-white rounded-full animate-pulse" [style.width.%]="stats.totalBids > 0 ? (stats.activeBids / stats.totalBids * 100) : 0"></div>
         </div>
+      </div>
 
-        <!-- User Info Card -->
-        <div class="bg-white rounded-xl shadow-lg p-6">
-          <div class="flex items-center mb-4">
-            <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mr-4 overflow-hidden">
-              <!-- ✅ Fixed: Use getProfilePicture helper -->
-              @if (getProfilePicture()) {
-                <img [src]="getProfilePicture()" class="w-full h-full object-cover" alt="Profile">
-              } @else {
-                {{ getUserInitial() }}
-              }
-            </div>
-            <div>
-              <p class="font-bold text-gray-900">{{ user?.studentName || 'User' }}</p>
-              <p class="text-sm text-gray-500">{{ user?.studentEmail || '' }}</p>
-            </div>
+      <!-- Won Auctions -->
+      <div class="bg-gradient-to-br from-yellow-500 to-amber-600 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 transition-all duration-300 cursor-pointer hover:shadow-2xl">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-14 h-14 bg-white/20 backdrop-blur-lg rounded-2xl flex items-center justify-center">
+            <span class="text-3xl">🏆</span>
           </div>
-          <div class="space-y-2 text-sm">
-            <div class="flex justify-between">
-              <span class="text-gray-500">College ID</span>
-              <span class="text-gray-900">{{ user?.collageId || 'Not set' }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-500">Department</span>
-              <span class="text-gray-900">{{ user?.department || 'Not set' }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-500">Year</span>
-              <span class="text-gray-900">{{ user?.year || 'Not set' }}</span>
-            </div>
+          <div class="text-right">
+            <p class="text-sm opacity-90 font-medium">Won Auctions</p>
+            <p class="text-4xl font-bold">{{ stats.wonAuctions }}</p>
           </div>
-          <a routerLink="/profile" class="mt-4 block text-center text-blue-600 hover:underline text-sm">
-            View Full Profile →
-          </a>
+        </div>
+        <div class="h-2 bg-white/20 rounded-full overflow-hidden">
+          <div class="h-full bg-white rounded-full" [style.width.%]="stats.totalBids > 0 ? (stats.wonAuctions / stats.totalBids * 100) : 0"></div>
+        </div>
+      </div>
+
+      <!-- Total Spent -->
+      <div class="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl shadow-xl p-6 text-white transform hover:scale-105 transition-all duration-300 cursor-pointer hover:shadow-2xl">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-14 h-14 bg-white/20 backdrop-blur-lg rounded-2xl flex items-center justify-center">
+            <span class="text-3xl">💰</span>
+          </div>
+          <div class="text-right">
+            <p class="text-sm opacity-90 font-medium">Total Spent</p>
+            <p class="text-3xl font-bold">₹{{ stats.totalSpent | number }}</p>
+          </div>
+        </div>
+        <div class="h-2 bg-white/20 rounded-full overflow-hidden">
+          <div class="h-full bg-white rounded-full" style="width: 75%"></div>
         </div>
       </div>
     </div>
+
+    <!-- Loading State -->
+    @if (isLoading) {
+      <div class="flex justify-center py-20">
+        <div class="text-center">
+          <div class="w-20 h-20 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600 mx-auto mb-4"></div>
+          <p class="text-gray-600 font-semibold">Loading your dashboard...</p>
+        </div>
+      </div>
+    } @else {
+      <!-- Main Content Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Left Column: Recent Bids & Activity -->
+        <div class="lg:col-span-2 space-y-8">
+          
+          <!-- Recent Bids Section -->
+          <div class="bg-white rounded-2xl shadow-xl p-8">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                <span class="text-3xl">📊</span>
+                <span>Recent Bids</span>
+              </h2>
+              <a routerLink="/my-bids" class="text-blue-600 hover:text-blue-700 font-semibold text-sm flex items-center gap-1 hover:gap-2 transition-all">
+                <span>View All</span>
+                <span>→</span>
+              </a>
+            </div>
+
+            @if (bidsLoading) {
+              <div class="flex justify-center py-12">
+                <div class="w-12 h-12 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
+              </div>
+            } @else if (recentBids.length > 0) {
+              <div class="space-y-4">
+                @for (bid of recentBids; track bid.bidId) {
+                  <div class="p-5 rounded-xl border-2 transition-all hover:shadow-lg cursor-pointer"
+                       [class]="bid.status === 'ACTIVE' ? 'bg-green-50 border-green-200 hover:border-green-400' : 
+                                bid.status === 'WON' ? 'bg-yellow-50 border-yellow-200 hover:border-yellow-400' : 
+                                'bg-gray-50 border-gray-200 hover:border-gray-400'">
+                    <div class="flex items-center justify-between">
+                      <div class="flex-1">
+                        <h3 class="font-bold text-gray-900 text-lg mb-1">{{ getBidStallName(bid) }}</h3>
+                        <p class="text-sm text-gray-600">Stall #{{ bid.stallId }}</p>
+                      </div>
+                      <div class="text-right">
+                        <p class="text-2xl font-bold text-green-600 mb-1">₹{{ bid.biddedPrice | number }}</p>
+                        <span class="px-3 py-1 rounded-full text-xs font-bold"
+                              [class]="bid.status === 'ACTIVE' ? 'bg-green-200 text-green-800' : 
+                                       bid.status === 'WON' ? 'bg-yellow-200 text-yellow-800' : 
+                                       'bg-gray-200 text-gray-800'">
+                          {{ bid.status }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="text-center py-16">
+                <span class="text-7xl block mb-4">📭</span>
+                <p class="text-gray-500 font-semibold text-lg mb-2">No bids yet</p>
+                <p class="text-gray-400 mb-6">Start bidding on active auctions!</p>
+                <a routerLink="/stalls" class="inline-block px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-lg">
+                  Browse Stalls →
+                </a>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Right Column: Quick Actions & Active Auctions -->
+        <div class="space-y-8">
+          
+          <!-- Quick Actions -->
+          <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-xl p-8 text-white">
+            <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+              <span class="text-2xl">⚡</span>
+              <span>Quick Actions</span>
+            </h3>
+            <div class="space-y-3">
+              <a routerLink="/stalls" 
+                 class="block w-full py-3 bg-white/20 backdrop-blur-lg rounded-xl font-semibold hover:bg-white/30 transition text-center">
+                🏪 Browse Stalls
+              </a>
+              <a routerLink="/my-bids" 
+                 class="block w-full py-3 bg-white/20 backdrop-blur-lg rounded-xl font-semibold hover:bg-white/30 transition text-center">
+                📊 My Bids
+              </a>
+              @if (user?.role === 'USER') {
+                <a routerLink="/bidder-application/apply" 
+                   class="block w-full py-3 bg-white text-indigo-600 rounded-xl font-bold hover:bg-gray-100 transition text-center shadow-lg">
+                  ✨ Become a Bidder
+                </a>
+              }
+            </div>
+          </div>
+
+          <!-- Active Auctions -->
+          <div class="bg-white rounded-2xl shadow-xl p-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <span class="text-2xl">🔥</span>
+              <span>Active Auctions</span>
+            </h3>
+
+            @if (auctionsLoading) {
+              <div class="flex justify-center py-8">
+                <div class="w-10 h-10 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
+              </div>
+            } @else if (activeAuctions.length > 0) {
+              <div class="space-y-4">
+                @for (auction of activeAuctions; track auction.stallId) {
+                  <a [routerLink]="['/stalls', auction.stallId]"
+                     class="block p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl hover:from-blue-50 hover:to-indigo-50 transition-all border-2 border-transparent hover:border-blue-300 hover:shadow-md">
+                    <h4 class="font-bold text-gray-900 mb-2">{{ auction.stallName }}</h4>
+                    <div class="flex items-center justify-between text-sm">
+                      <span class="text-gray-600">{{ auction.category }}</span>
+                      <span class="font-bold text-green-600">₹{{ auction.currentHighestBid | number }}</span>
+                    </div>
+                    <div class="mt-2 flex items-center gap-1 text-xs text-blue-600 font-semibold">
+                      <span>🏷️</span>
+                      <span>{{ auction.totalBids }} bids</span>
+                    </div>
+                  </a>
+                }
+              </div>
+              <a routerLink="/stalls" class="block w-full mt-4 py-3 text-center text-blue-600 font-bold hover:bg-blue-50 rounded-xl transition border-2 border-blue-200">
+                View All Auctions →
+              </a>
+            } @else {
+              <div class="text-center py-8">
+                <span class="text-5xl block mb-3">🏪</span>
+                <p class="text-gray-500 text-sm">No active auctions</p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
   </div>
 </div>

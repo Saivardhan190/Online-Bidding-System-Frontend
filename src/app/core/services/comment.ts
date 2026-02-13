@@ -10,7 +10,7 @@ export interface Comment {
   userName: string;
   userProfilePicture?: string;
   commentText: string;
-  createdAt:  string;
+  createdAt: string;
 }
 
 export interface CommentRequest {
@@ -31,14 +31,18 @@ export class CommentService {
   }
 
   addComment(request: CommentRequest): Observable<Comment> {
-    return this. http.post<Comment>(this.apiUrl, request);
+    return this.http.post<Comment>(this.apiUrl, request);
   }
 
-  deleteComment(commentId:  number): Observable<any> {
+  deleteComment(commentId: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${commentId}`);
   }
 
   getMyComments(): Observable<Comment[]> {
     return this.http.get<Comment[]>(`${this.apiUrl}/my-comments`);
+  }
+
+  getCommentCount(stallId: number): Observable<{ count: number }> {
+    return this.http.get<{ count: number }>(`${this.apiUrl}/stall/${stallId}/count`);
   }
 }

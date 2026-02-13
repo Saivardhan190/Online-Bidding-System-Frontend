@@ -129,7 +129,7 @@
     @if (! isLoading) {
       @if (filteredStalls.length > 0) {
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          @for (stall of filteredStalls; track stall. stallId) {
+          @for (stall of filteredStalls; track stall.stallId) {
             <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <!-- Stall Image -->
               <div class="h-48 bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center relative">
@@ -156,6 +156,14 @@
                 </div>
 
                 <p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ stall.description }}</p>
+
+                <!-- Countdown Timer -->
+                <app-countdown-timer
+                  [startDate]="stall.biddingStart"
+                  [endDate]="stall.biddingEnd"
+                  [status]="stall.status"
+                  class="block mb-4">
+                </app-countdown-timer>
 
                 <div class="flex items-center text-sm text-gray-500 mb-4">
                   <span class="mr-1">📍</span>

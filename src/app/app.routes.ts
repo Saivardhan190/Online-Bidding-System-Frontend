@@ -3,6 +3,7 @@ import { authGuard } from './core/guards/auth';
 import { adminGuard } from './core/guards/admin.guard';
 import { bidderGuard } from './core/guards/bidder.guard';
 import { guestGuard } from './core/guards/guest.guard';
+import { About } from './features/about/about';
 
 export const routes: Routes = [
   // ✅ PUBLIC ROUTES (No guard - accessible to everyone)
@@ -150,6 +151,13 @@ export const routes: Routes = [
     path: 'settings',
     loadComponent: () => import('./features/settings/settings').then(m => m.Settings),
     canActivate: [authGuard]
+  },
+
+  //About
+  {
+    path: 'about',
+    component: About,
+    title: 'About Us - BidMart'
   },
 
   // Error Pages

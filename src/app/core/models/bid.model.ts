@@ -4,11 +4,14 @@ export interface Bid {
   stallName?:  string;
   stallNo?: number;
   bidderId:  number;
-  bidderName?:  string;
+  bidderName:  string;
   biddedPrice: number;
   bidTime: string;
   status?:  'ACTIVE' | 'WON' | 'LOST' | 'OUTBID';
   rank?:  number;
+  isHighestBid?: boolean;
+  Location?: string;
+  stallImage?: string;
 }
 
 export interface BidRequest {

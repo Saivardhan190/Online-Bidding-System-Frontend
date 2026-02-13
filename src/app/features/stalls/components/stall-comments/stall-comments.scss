@@ -1,0 +1,28 @@
+.comments-section-black {
+  @apply block;
+}
+
+textarea {
+  &:focus {
+    outline: none;
+  }
+}
+
+/* Custom scrollbar for black theme */
+.custom-scrollbar-black {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    @apply bg-gray-900 rounded-lg;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    @apply bg-gray-700 rounded-lg;
+    
+    &:hover {
+      @apply bg-gray-600;
+    }
+  }
+}

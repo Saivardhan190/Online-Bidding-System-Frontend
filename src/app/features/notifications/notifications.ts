@@ -1,16 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-
-interface Notification {
-  id: number;
-  type: 'bid' | 'application' | 'winner' | 'system';
-  title: string;
-  message: string;
-  timestamp: string;
-  isRead: boolean;
-  icon: string;
-}
+import { Subscription } from 'rxjs';
+import { NotificationService } from '../../core/services/notification.service';
+import { Notification } from '../../core/models/notification.model';
 
 @Component({
   selector: 'app-notifications',
@@ -19,72 +12,66 @@ interface Notification {
   templateUrl: './notifications.html',
   styleUrls: ['./notifications.scss']
 })
-export class Notifications implements OnInit {
+export class Notifications implements OnInit, OnDestroy {
   notifications: Notification[] = [];
   filteredNotifications: Notification[] = [];
   activeFilter = 'all';
   isLoading = false;
+  error = '';
+  private notificationSubscription?: Subscription;
+
+  constructor(private notificationService: NotificationService) {}
 
   ngOnInit(): void {
     this.loadNotifications();
+    this.subscribeToRealTimeUpdates();
+  }
+
+  ngOnDestroy(): void {
+    if (this.notificationSubscription) {
+      this.notificationSubscription.unsubscribe();
+    }
   }
 
   loadNotifications(): void {
     this.isLoading = true;
+    this.error = '';
     
-    // Mock data - replace with actual API call
-    setTimeout(() => {
-      this.notifications = [
-        {
-          id: 1,
-          type: 'bid',
-          title: 'New Bid on Tech Hub',
-          message: 'Someone placed a bid of ₹5000 on Tech Hub stall',
-          timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-          isRead: false,
-          icon: '💰'
+    console.log('📡 Loading notifications from API...');
+    
+    this.notificationService.getNotifications().subscribe({
+      next: (notifications) => {
+        console.log('✅ Loaded', notifications.length, 'notifications');
+        this.notifications = notifications;
+        this.filterNotifications();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('❌ Error loading notifications:', error);
+        this.error = 'Failed to load notifications';
+        this.isLoading = false;
+        
+        // Fallback to mock data for development
+        console.log('⚠️ Using mock notifications');
+        this.notifications = this.getMockNotifications();
+        this.filterNotifications();
+      }
+    });
+  }
+
+  subscribeToRealTimeUpdates(): void {
+    this.notificationSubscription = this.notificationService
+      .getNotificationUpdates()
+      .subscribe({
+        next: (notification) => {
+          console.log('📨 New notification received:', notification);
+          this.notifications.unshift(notification);
+          this.filterNotifications();
         },
-        {
-          id: 2,
-          type: 'winner',
-          title: 'You won an auction!',
-          message: 'Congratulations! You won the bid for Food Corner with ₹3500',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-          isRead: false,
-          icon: '🎉'
-        },
-        {
-          id: 3,
-          type: 'application',
-          title: 'Bidder Application Approved',
-          message: 'Your bidder application has been approved. You can now participate in auctions.',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-          isRead: true,
-          icon: '✅'
-        },
-        {
-          id: 4,
-          type: 'bid',
-          title: 'You were outbid',
-          message: 'Someone placed a higher bid on Electronics Store',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-          isRead: true,
-          icon: '⚠️'
-        },
-        {
-          id: 5,
-          type: 'system',
-          title: 'New stalls available',
-          message: '5 new stalls are now available for bidding',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
-          isRead: true,
-          icon: '📢'
+        error: (error) => {
+          console.error('❌ Real-time notification error:', error);
         }
-      ];
-      
-      this.filterNotifications();
-      this.isLoading = false;
-    }, 500);
+      });
   }
 
   setFilter(filter: string): void {
@@ -98,27 +85,68 @@ export class Notifications implements OnInit {
     } else if (this.activeFilter === 'unread') {
       this.filteredNotifications = this.notifications.filter(n => !n.isRead);
     } else {
-      this.filteredNotifications = this.notifications.filter(n => n.type === this.activeFilter);
+      // Filter by type
+      this.filteredNotifications = this.notifications.filter(n => 
+        n.type.toLowerCase().includes(this.activeFilter.toLowerCase())
+      );
     }
   }
 
   markAsRead(notification: Notification): void {
-    notification.isRead = true;
-    // Call API to mark as read
+    if (notification.isRead) return;
+    
+    console.log('✅ Marking notification as read:', notification.id);
+    
+    this.notificationService.markAsRead(notification.id).subscribe({
+      next: () => {
+        notification.isRead = true;
+        this.filterNotifications();
+      },
+      error: (error) => {
+        console.error('❌ Error marking notification as read:', error);
+        // Still mark as read locally
+        notification.isRead = true;
+        this.filterNotifications();
+      }
+    });
   }
 
   markAllAsRead(): void {
-    this.notifications.forEach(n => n.isRead = true);
-    this.filterNotifications();
-    // Call API to mark all as read
+    console.log('✅ Marking all notifications as read');
+    
+    this.notificationService.markAllAsRead().subscribe({
+      next: () => {
+        this.notifications.forEach(n => n.isRead = true);
+        this.filterNotifications();
+      },
+      error: (error) => {
+        console.error('❌ Error marking all as read:', error);
+        // Still mark all as read locally
+        this.notifications.forEach(n => n.isRead = true);
+        this.filterNotifications();
+      }
+    });
   }
 
   clearAll(): void {
-    if (confirm('Are you sure you want to clear all notifications?')) {
-      this.notifications = [];
-      this.filterNotifications();
-      // Call API to clear notifications
+    if (!confirm('Are you sure you want to clear all notifications?')) {
+      return;
     }
+    
+    console.log('🗑️ Clearing all notifications');
+    
+    this.notificationService.deleteAll().subscribe({
+      next: () => {
+        this.notifications = [];
+        this.filterNotifications();
+      },
+      error: (error) => {
+        console.error('❌ Error clearing notifications:', error);
+        // Still clear locally
+        this.notifications = [];
+        this.filterNotifications();
+      }
+    });
   }
 
   formatTimestamp(timestamp: string): string {
@@ -143,12 +171,80 @@ export class Notifications implements OnInit {
   }
 
   getTypeClass(type: string): string {
-    switch (type) {
-      case 'bid': return 'bg-blue-100 text-blue-800';
-      case 'winner': return 'bg-green-100 text-green-800';
-      case 'application': return 'bg-purple-100 text-purple-800';
-      case 'system': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+    const lowerType = type.toLowerCase();
+    if (lowerType.includes('bid')) return 'bg-blue-100 text-blue-800';
+    if (lowerType.includes('won') || lowerType.includes('winner')) return 'bg-green-100 text-green-800';
+    if (lowerType.includes('application') || lowerType.includes('approved')) return 'bg-purple-100 text-purple-800';
+    if (lowerType.includes('system')) return 'bg-gray-100 text-gray-800';
+    return 'bg-gray-100 text-gray-800';
+  }
+
+  getNotificationIcon(type: string): string {
+    const lowerType = type.toLowerCase();
+    if (lowerType.includes('bid_placed')) return '💰';
+    if (lowerType.includes('outbid')) return '⚠️';
+    if (lowerType.includes('won') || lowerType.includes('winner')) return '🎉';
+    if (lowerType.includes('application_approved')) return '✅';
+    if (lowerType.includes('application_rejected')) return '❌';
+    if (lowerType.includes('auction_started')) return '🏁';
+    if (lowerType.includes('auction_ending')) return '⏰';
+    if (lowerType.includes('auction_ended')) return '🏁';
+    if (lowerType.includes('system')) return '📢';
+    return '🔔';
+  }
+
+  getMockNotifications(): Notification[] {
+    return [
+      {
+        id: 1,
+        userId: 1,
+        type: 'BID_PLACED',
+        title: 'New Bid Placed',
+        message: 'Someone placed a bid of ₹5000 on Tech Hub stall',
+        timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+        isRead: false,
+        createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString()
+      },
+      {
+        id: 2,
+        userId: 1,
+        type: 'AUCTION_WON',
+        title: 'You won an auction!',
+        message: 'Congratulations! You won the bid for Food Corner with ₹3500',
+        timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+        isRead: false,
+        createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString()
+      },
+      {
+        id: 3,
+        userId: 1,
+        type: 'APPLICATION_APPROVED',
+        title: 'Bidder Application Approved',
+        message: 'Your bidder application has been approved. You can now participate in auctions.',
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+        isRead: true,
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString()
+      },
+      {
+        id: 4,
+        userId: 1,
+        type: 'BID_OUTBID',
+        title: 'You were outbid',
+        message: 'Someone placed a higher bid on Electronics Store',
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+        isRead: true,
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString()
+      },
+      {
+        id: 5,
+        userId: 1,
+        type: 'SYSTEM_ANNOUNCEMENT',
+        title: 'New stalls available',
+        message: '5 new stalls are now available for bidding',
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
+        isRead: true,
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString()
+      }
+    ];
   }
 }

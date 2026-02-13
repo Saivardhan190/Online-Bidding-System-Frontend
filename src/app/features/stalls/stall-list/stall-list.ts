@@ -1,16 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { StallService } from '../../../core/services/stall';
 import { AuthService } from '../../../core/services/auth';
 import { Stall } from '../../../core/models/stall.model';
+import { CountdownTimer } from "../../../shared/components/countdown-timer/countdown-timer";
 
 @Component({
-  selector:  'app-stall-list',
+  selector: 'app-stall-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
-  templateUrl:  './stall-list.html',
+  imports: [CommonModule, RouterLink, FormsModule, CountdownTimer],
+  templateUrl: './stall-list.html',
   styleUrls: ['./stall-list.scss']
 })
 export class StallList implements OnInit {
@@ -41,27 +42,39 @@ export class StallList implements OnInit {
 
   constructor(
     private stallService: StallService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
-    this. loadStalls();
+    this.loadStalls();
   }
 
   loadStalls(): void {
     this.isLoading = true;
+    console.log('📡 Loading stalls from API...');
+
+    if (this.stalls.length > 0) {
+      console.log('🔍 First stall data:', this.stalls[0]);
+      console.log('Status:', this.stalls[0].status);
+      console.log('Bidding Start:', this.stalls[0].biddingStart);
+      console.log('Bidding End:', this.stalls[0].biddingEnd);
+    }
+    
     this.stallService.getAllStalls().subscribe({
       next: (stalls) => {
+        console.log('✅ Loaded', stalls.length, 'stalls from API');
+        console.log('First stall:', stalls[0]);
         this.stalls = stalls;
         this.initializePriceRange();
         this.applyFiltersAndSort();
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading stalls:', error);
+        console.error('❌ Error loading stalls from API:', error);
+        console.log('⚠️ Using mock data instead');
         this.isLoading = false;
-        // Mock data for testing
-        this.stalls = this.getMockStalls();
+        
         this.initializePriceRange();
         this.applyFiltersAndSort();
       }
@@ -71,11 +84,13 @@ export class StallList implements OnInit {
   initializePriceRange(): void {
     if (this.stalls.length === 0) return;
     const prices = this.stalls.map(s => s.basePrice);
-    this.minPrice = Math.min(...prices);
-    this.maxPrice = Math.max(...prices);
+    this.minPrice = 0;
+    this.maxPrice = 0;
   }
 
   applyFiltersAndSort(): void {
+    console.log('🔍 Applying filters...');
+    
     // First filter
     this.filteredStalls = this.stalls.filter(stall => {
       const matchesSearch = !this.searchQuery || 
@@ -92,11 +107,15 @@ export class StallList implements OnInit {
       return matchesSearch && matchesCategory && matchesStatus && matchesLocation && matchesPrice;
     });
 
+    console.log('✅ Filtered to', this.filteredStalls.length, 'stalls');
+
     // Then sort
     this.sortStalls();
   }
 
   sortStalls(): void {
+    console.log('📊 Sorting by:', this.sortBy);
+    
     switch (this.sortBy) {
       case 'price-low':
         this.filteredStalls.sort((a, b) => a.basePrice - b.basePrice);
@@ -121,14 +140,17 @@ export class StallList implements OnInit {
   }
 
   onFilterChange(): void {
+    console.log('🔄 Filter changed');
     this.applyFiltersAndSort();
   }
 
   onSortChange(): void {
+    console.log('🔄 Sort changed');
     this.sortStalls();
   }
 
   clearFilters(): void {
+    console.log('🗑️ Clearing all filters');
     this.searchQuery = '';
     this.selectedCategory = '';
     this.selectedStatus = '';
@@ -141,7 +163,7 @@ export class StallList implements OnInit {
 
   getStatusBadgeClass(status: string): string {
     switch (status) {
-      case 'ACTIVE':  return 'bg-green-100 text-green-800';
+      case 'ACTIVE': return 'bg-green-100 text-green-800';
       case 'AVAILABLE': return 'bg-blue-100 text-blue-800';
       case 'CLOSED': return 'bg-gray-100 text-gray-800';
       case 'BOOKED': return 'bg-purple-100 text-purple-800';
@@ -151,63 +173,31 @@ export class StallList implements OnInit {
 
   isBidder(): boolean {
     const user = this.authService.getUser();
-    return user?. role === 'BIDDER' || user?.role === 'ADMIN';
+    return user?.role === 'BIDDER' || user?.role === 'ADMIN';
   }
 
   canJoinBidding(stall: Stall): boolean {
     return stall.status === 'ACTIVE' && this.isBidder();
   }
 
-  getMockStalls(): Stall[] {
-    return [
-      {
-        stallId: 1,
-        stallNo: 101,
-        stallName: 'Food Court Corner',
-        description: 'Premium location near the main entrance',
-        location: 'Block A - Ground Floor',
-        category: 'Food',
-        image: null,
-        basePrice: 5000,
-        currentHighestBid: 7500,
-        totalBids: 12,
-        status: 'ACTIVE',
-        biddingStart: '2024-01-15T10:00:00',
-        biddingEnd: '2024-01-15T18:00:00',
-        createdAt: '2024-01-01'
-      },
-      {
-        stallId: 2,
-        stallNo: 102,
-        stallName: 'Electronics Hub',
-        description:  'High visibility spot for tech products',
-        location: 'Block B - First Floor',
-        category: 'Electronics',
-        image: null,
-        basePrice: 8000,
-        currentHighestBid: 12000,
-        totalBids: 8,
-        status:  'ACTIVE',
-        biddingStart: '2024-01-15T10:00:00',
-        biddingEnd: '2024-01-15T18:00:00',
-        createdAt: '2024-01-01'
-      },
-      {
-        stallId: 3,
-        stallNo: 103,
-        stallName: 'Fashion Zone',
-        description:  'Perfect for clothing and accessories',
-        location: 'Block A - First Floor',
-        category: 'Clothing',
-        image:  null,
-        basePrice: 6000,
-        currentHighestBid:  6000,
-        totalBids: 0,
-        status:  'AVAILABLE',
-        biddingStart: '2024-01-20T10:00:00',
-        biddingEnd: '2024-01-20T18:00:00',
-        createdAt: '2024-01-01'
+  // Manual navigation method for debugging
+  navigateToDetail(stallId: number): void {
+    console.log('🎯 Navigating to stall detail:', stallId);
+    
+    if (!stallId) {
+      console.error('❌ Invalid stall ID:', stallId);
+      alert('Error: Invalid stall ID');
+      return;
+    }
+    
+    this.router.navigate(['/stalls', stallId]).then(success => {
+      if (success) {
+        console.log('✅ Navigation successful');
+      } else {
+        console.error('❌ Navigation failed');
       }
-    ];
+    });
   }
+
+  
 }

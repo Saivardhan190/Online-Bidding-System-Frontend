@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
@@ -11,104 +11,124 @@ import { AuthService } from '../../../core/services/auth';
   templateUrl: './login.html',
   styleUrls: ['./login.scss']
 })
-export class Login {
+export class Login implements OnInit {
   loginForm: FormGroup;
   isLoading = false;
   isGoogleLoading = false;
-  showPassword = false;
   errorMessage = '';
+  successMessage = '';  // Add this
+  showPassword = false;
   sessionExpired = false;
-  returnUrl = '/dashboard';
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router:  Router,
+    private router: Router,
     private route: ActivatedRoute
   ) {
     this.loginForm = this.fb.group({
       studentEmail: ['', [Validators.required, Validators.email]],
-      password:  ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required, Validators.minLength(8)]]
     });
-
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
-    this.sessionExpired = this. route.snapshot.queryParams['expired'] === 'true';
-    
-    // Check for OAuth errors
-    const oauthError = this.route.snapshot.queryParams['error'];
-    if (oauthError) {
-      this. errorMessage = oauthError;
-    }
   }
 
+  ngOnInit(): void {
+    // Check if already logged in
+    if (this.authService.isLoggedIn()) {
+      this.router.navigate(['/dashboard']);
+      return;
+    }
+
+    // Check for session expiration
+    this.route.queryParams.subscribe(params => {
+      if (params['expired'] === 'true') {
+        this.sessionExpired = true;
+      }
+      // Check for verification success message
+      if (params['verified'] === 'true') {
+        this.successMessage = '✅ Email verified successfully! You can now login.';
+        setTimeout(() => this.successMessage = '', 5000);
+      }
+    });
+  }
+
+  /**
+   * ✅ Submit Login Form
+   */
   onSubmit(): void {
     if (this.loginForm.invalid) {
-      Object.keys(this. loginForm.controls).forEach(key => {
-        this.loginForm.get(key)?.markAsTouched();
-      });
+      this.errorMessage = 'Please enter valid email and password';
       return;
     }
 
     this.isLoading = true;
     this.errorMessage = '';
+    this.successMessage = '';
 
     const credentials = {
-      studentEmail:  this.loginForm. get('studentEmail')?.value. trim().toLowerCase(),
-      password: this. loginForm.get('password')?.value
+      studentEmail: this.loginForm.value.studentEmail,
+      password: this.loginForm.value.password
     };
 
-    console.log('Attempting login with:', credentials. studentEmail);
+    console.log('📤 Attempting login for:', credentials.studentEmail);
 
-    this.authService. login(credentials).subscribe({
-      next:  (response) => {
+    this.authService.login(credentials).subscribe({
+      next: (response) => {
+        console.log('✅ Login successful');
         this.isLoading = false;
-        console.log('Login response:', response);
-        
-        if (response.success && response.user) {
-          console.log('User role:', response.user. role);
-          
-          // ✅ Redirect based on role
-          if (response.user.role === 'ADMIN') {
-            console.log('Redirecting to admin dashboard');
-            this.router.navigate(['/admin']);
-          } else {
-            console.log('Redirecting to user dashboard');
-            this.router.navigate([this.returnUrl]);
-          }
-        } else {
-          if (response.message?. includes('not verified')) {
-            this.router.navigate(['/verify-otp'], {
-              queryParams: { email:  credentials.studentEmail }
-            });
-          } else {
-            this.errorMessage = response.message || 'Login failed';
-          }
-        }
+        this.router.navigate(['/dashboard']);
       },
       error: (error) => {
+        console.error('❌ Login error:', error);
         this.isLoading = false;
-        console.error('Login error:', error);
-        
-        if (error.error?. errors) {
-          const errors = error.error.errors;
-          const errorMessages = Object.keys(errors).map(key => `${key}: ${errors[key]}`);
-          this.errorMessage = errorMessages. join(', ');
-        } else if (error.error?. message) {
+
+        // ✅ Handle unverified email
+        if (error.status === 403 && error.error?.code === 'EMAIL_NOT_VERIFIED') {
           this.errorMessage = error.error.message;
-        } else if (error.status === 401) {
-          this.errorMessage = 'Invalid email or password';
-        } else if (error.status === 400) {
-          this.errorMessage = 'Please check your input and try again';
-        } else {
-          this.errorMessage = 'Login failed. Please try again.';
+
+          // Auto-redirect to OTP verification after 2 seconds
+          setTimeout(() => {
+            console.log('🔄 Redirecting to OTP verification');
+            this.router.navigate(['/verify-otp'], {
+              queryParams: { email: credentials.studentEmail }
+            });
+          }, 2000);
+        }
+        // ✅ Handle OAuth user trying to use password
+        else if (error.error?.message?.includes('Google login')) {
+          this.errorMessage = error.error.message;
+        }
+        // ✅ Handle invalid credentials
+        else if (error.status === 400) {
+          this.errorMessage = error.error?.message || 'Invalid email or password';
+        }
+        // ✅ Handle other errors
+        else {
+          this.errorMessage = 'An unexpected error occurred. Please try again.';
         }
       }
     });
   }
 
+  /**
+   * ✅ Login with Google
+   */
   loginWithGoogle(): void {
     this.isGoogleLoading = true;
-    this.errorMessage = '';
     this.authService.loginWithGoogle();
+  }
+
+  /**
+   * ✅ Toggle Password Visibility
+   */
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  /**
+   * ✅ Navigate to Forgot Password
+   */
+  goToForgotPassword(): void {
+    this.router.navigate(['/forgot-password']);
   }
 }

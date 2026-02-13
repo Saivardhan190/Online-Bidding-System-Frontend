@@ -13,7 +13,7 @@
           @if (applicationStatus === 'PENDING') {
             Your application is currently under review.
           } @else if (applicationStatus === 'APPROVED') {
-            Your application has been approved!  You can now participate in auctions.
+            Your application has been approved! You can now participate in auctions.
           } @else if (applicationStatus === 'REJECTED') {
             Unfortunately, your application was rejected.
           }
@@ -92,20 +92,32 @@
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
                   <input type="email" formControlName="studentEmail" class="input-field bg-gray-100" readonly>
+                  @if (isEmailAlreadyVerified) {
+                    <p class="text-green-600 text-xs mt-1 flex items-center gap-1">
+                      <span>✓</span>
+                      <span>Email verified</span>
+                    </p>
+                  }
                 </div>
 
                 <!-- Phone -->
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                  <input type="tel" formControlName="phoneNumber" class="input-field" placeholder="Enter your phone number">
-                  @if (applicationForm.get('phoneNumber')?.invalid && applicationForm.get('phoneNumber')?.touched) {
-                    <p class="text-red-500 text-sm mt-1">Valid 10-digit phone number required</p>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                  <input 
+                    type="tel" 
+                    formControlName="phoneNumber" 
+                    class="input-field" 
+                    placeholder="Enter your phone number"
+                    maxlength="10"
+                  >
+                  @if (isFieldInvalid('phoneNumber')) {
+                    <p class="text-red-500 text-sm mt-1">{{ getFieldError('phoneNumber') }}</p>
                   }
                 </div>
               </div>
 
               <div class="bg-blue-50 rounded-lg p-4 text-sm text-blue-700">
-                <p>📌 Your personal details are pre-filled from your profile.  Phone number can be updated if needed.</p>
+                <p>📌 Your personal details are pre-filled from your profile. Phone number can be updated if needed.</p>
               </div>
 
               <button type="button" (click)="nextStep()" 
@@ -118,6 +130,7 @@
           <!-- Step 2: Application Details -->
           @if (currentStep === 2) {
             <div class="space-y-4">
+              
               <!-- Preferred Category -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Preferred Stall Category *</label>
@@ -127,70 +140,263 @@
                     <option [value]="category">{{ category }}</option>
                   }
                 </select>
-                @if (applicationForm.get('preferredStallCategory')?.invalid && applicationForm. get('preferredStallCategory')?.touched) {
-                  <p class="text-red-500 text-sm mt-1">Please select a category</p>
+                @if (isFieldInvalid('preferredStallCategory')) {
+                  <p class="text-red-500 text-sm mt-1">{{ getFieldError('preferredStallCategory') }}</p>
                 }
               </div>
+
+              <!-- ✅ CONDITIONAL OTP VERIFICATION SECTION -->
+              @if (!skipOtpVerification) {
+                <!-- Email NOT verified - Show OTP section -->
+                <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+                  <div class="flex items-start gap-3 mb-4">
+                    <div class="flex-shrink-0 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                      <span class="text-white text-xl">📧</span>
+                    </div>
+                    <div class="flex-1">
+                      <h3 class="font-bold text-gray-900 text-lg mb-1">Email Verification Required</h3>
+                      <p class="text-sm text-gray-600">
+                        We'll send a 6-digit OTP to <strong class="text-blue-700">{{ applicationForm.get('studentEmail')?.value }}</strong>
+                      </p>
+                    </div>
+                  </div>
+                  
+                  @if (!otpSent) {
+                    <!-- Send OTP Button -->
+                    <button 
+                      type="button" 
+                      (click)="sendOtp()"
+                      [disabled]="isOtpLoading"
+                      class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      @if (isOtpLoading) {
+                        <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Sending OTP...
+                      } @else {
+                        <span>📧</span>
+                        <span>Send OTP to Email</span>
+                      }
+                    </button>
+                  } @else {
+                    <!-- OTP Input and Verify Section -->
+                    <div class="space-y-3">
+                      <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                          Enter 6-Digit OTP *
+                        </label>
+                        <input 
+                          type="text" 
+                          formControlName="otp" 
+                          class="input-field text-center text-2xl font-bold tracking-widest"
+                          [class.border-green-500]="otpVerified"
+                          [class.bg-green-50]="otpVerified"
+                          placeholder="000000"
+                          maxlength="6"
+                          inputmode="numeric"
+                          pattern="[0-9]*"
+                          [disabled]="otpVerified"
+                        >
+                        @if (isFieldInvalid('otp') && !otpVerified) {
+                          <p class="text-red-500 text-sm mt-1">{{ getFieldError('otp') }}</p>
+                        }
+                      </div>
+
+                      <!-- Verify Button -->
+                      @if (!otpVerified) {
+                        <button 
+                          type="button" 
+                          (click)="verifyOtp()"
+                          [disabled]="isVerifyingOtp || applicationForm.get('otp')?.invalid"
+                          class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          @if (isVerifyingOtp) {
+                            <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Verifying...
+                          } @else {
+                            <span>🔍</span>
+                            <span>Verify OTP</span>
+                          }
+                        </button>
+                      }
+
+                      <!-- Verified Badge -->
+                      @if (otpVerified) {
+                        <div class="flex items-center justify-center gap-2 py-3 bg-green-100 border-2 border-green-500 rounded-lg">
+                          <span class="text-2xl">✅</span>
+                          <span class="font-bold text-green-700">OTP Verified Successfully!</span>
+                        </div>
+                      }
+
+                      <!-- Resend OTP -->
+                      <div class="flex items-center justify-between pt-2 border-t border-blue-200">
+                        <p class="text-sm text-gray-600">Didn't receive the code?</p>
+                        <button 
+                          type="button" 
+                          (click)="resendOtp()"
+                          [disabled]="countdown > 0 || isOtpLoading || otpVerified"
+                          class="text-sm font-medium text-blue-600 hover:underline disabled:text-gray-400 disabled:cursor-not-allowed disabled:no-underline"
+                        >
+                          @if (countdown > 0) {
+                            Resend in {{ countdown }}s
+                          } @else if (otpVerified) {
+                            OTP Verified
+                          } @else {
+                            🔄 Resend OTP
+                          }
+                        </button>
+                      </div>
+                    </div>
+                  }
+
+                  <!-- OTP Success Message -->
+                  @if (otpSuccess) {
+                    <div class="mt-4 p-3 bg-green-50 border-2 border-green-300 rounded-lg text-green-700 text-sm flex items-start gap-2">
+                      <span class="text-lg flex-shrink-0">✅</span>
+                      <span class="flex-1">{{ otpSuccess }}</span>
+                    </div>
+                  }
+
+                  <!-- OTP Error Message -->
+                  @if (otpError) {
+                    <div class="mt-4 p-3 bg-red-50 border-2 border-red-300 rounded-lg text-red-700 text-sm flex items-start gap-2">
+                      <span class="text-lg flex-shrink-0">⚠️</span>
+                      <span class="flex-1">{{ otpError }}</span>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <!-- ✅ Email Already Verified - Show success message -->
+                <div class="bg-green-50 border-2 border-green-300 rounded-xl p-6">
+                  <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0 w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+                      <span class="text-white text-xl">✅</span>
+                    </div>
+                    <div class="flex-1">
+                      <h3 class="font-bold text-green-900 text-lg mb-1">Email Already Verified</h3>
+                      <p class="text-sm text-green-700 mb-2">
+                        Your email <strong class="text-green-900">{{ applicationForm.get('studentEmail')?.value }}</strong> is already verified.
+                      </p>
+                      <div class="bg-green-100 rounded-lg p-3 mt-3">
+                        <p class="text-xs text-green-800 flex items-center gap-2">
+                          <span class="text-base">ℹ️</span>
+                          <span>
+                            @if (user?.emailVerified) {
+                              You verified this email during signup. No OTP verification needed for this application.
+                            } @else {
+                              Your email was verified through Google. No additional verification required.
+                            }
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
 
               <!-- Reason -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Why do you want to become a bidder?  *
+                  Why do you want to become a bidder? *
                   <span class="text-gray-400 font-normal">(min 50 characters)</span>
                 </label>
                 <textarea 
                   formControlName="reason" 
                   class="input-field" 
-                  rows="4"
+                  rows="5"
                   placeholder="Tell us about your interest in running a stall, your experience (if any), and what kind of stall you'd like to bid on..."
                 ></textarea>
-                @if (applicationForm.get('reason')?.invalid && applicationForm.get('reason')?.touched) {
-                  <p class="text-red-500 text-sm mt-1">Please provide at least 50 characters</p>
+                @if (isFieldInvalid('reason')) {
+                  <p class="text-red-500 text-sm mt-1">{{ getFieldError('reason') }}</p>
                 }
-                <p class="text-sm text-gray-500 mt-1">
-                  {{ applicationForm.get('reason')?.value?.length || 0 }} / 50 characters minimum
-                </p>
+                <div class="flex justify-between items-center mt-1">
+                  <p class="text-sm text-gray-500">
+                    {{ getReasonCharCount() }} / 50 characters minimum
+                  </p>
+                  @if (getReasonCharCount() >= 50) {
+                    <span class="text-green-600 text-sm font-medium">✓ Valid</span>
+                  }
+                </div>
               </div>
 
-              <!-- Terms -->
-              <div class="bg-gray-50 rounded-lg p-4">
-                <label class="flex items-start cursor-pointer">
-                  <input type="checkbox" formControlName="termsAccepted" class="mt-1 mr-3 w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500">
-                  <span class="text-sm text-gray-700">
-                    I agree to the <a href="#" class="text-blue-600 hover:underline">Terms and Conditions</a> and confirm that: 
-                    <ul class="list-disc ml-5 mt-2 text-gray-500">
-                      <li>All information provided is accurate</li>
-                      <li>I will comply with all bidding rules</li>
+              <!-- Terms and Conditions -->
+              <div class="bg-gray-50 rounded-xl p-5 border-2 border-gray-200">
+                <label class="flex items-start cursor-pointer group">
+                  <input 
+                    type="checkbox" 
+                    formControlName="termsAccepted" 
+                    class="mt-1 mr-3 w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                  >
+                  <span class="text-sm text-gray-700 flex-1">
+                    <span class="font-semibold text-gray-900">I agree to the Terms and Conditions</span> and confirm that:
+                    <ul class="list-disc ml-5 mt-2 space-y-1 text-gray-600">
+                      <li>All information provided is accurate and truthful</li>
+                      <li>I will comply with all bidding rules and regulations</li>
                       <li>I understand that winning a bid is a commitment</li>
+                      @if (!skipOtpVerification) {
+                        <li>I have verified my email with the OTP sent</li>
+                      } @else {
+                        <li>My email is verified and I can be contacted</li>
+                      }
                     </ul>
                   </span>
                 </label>
+                @if (applicationForm.get('termsAccepted')?.invalid && applicationForm.get('termsAccepted')?.touched) {
+                  <p class="text-red-500 text-sm mt-2 ml-8">You must accept the terms and conditions</p>
+                }
               </div>
 
+              <!-- Action Buttons -->
               <div class="flex gap-4 mt-6">
-                <button type="button" (click)="prevStep()" class="flex-1 btn-outline">
+                <button 
+                  type="button" 
+                  (click)="prevStep()" 
+                  class="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"
+                >
                   ← Back
                 </button>
-                <button type="submit" [disabled]="applicationForm.invalid || isLoading" class="flex-1 btn-success">
+                <button 
+                  type="submit" 
+                  [disabled]="applicationForm.invalid || isLoading || (!skipOtpVerification && !otpVerified)" 
+                  class="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
                   @if (isLoading) {
-                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" fill="none" viewBox="0 0 24 24">
+                    <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                     Submitting...
                   } @else {
-                    Submit Application ✓
+                    <span>Submit Application</span>
+                    <span>✓</span>
                   }
                 </button>
+              </div>
+
+              <!-- Form Status Info -->
+              <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                <p class="text-xs text-gray-600 text-center">
+                  <strong>Note:</strong> Your application will be reviewed by our team. You'll receive an email notification once it's processed.
+                </p>
               </div>
             </div>
           }
         </form>
 
         <!-- Help Text -->
-        <p class="text-center mt-6 text-gray-500 text-sm">
-          Need help? Contact us at <a href="mailto:support@bidmart.com" class="text-blue-600 hover:underline">support&#64;bidmart. com</a>
-        </p>
+        <div class="mt-6 pt-6 border-t border-gray-200">
+          <p class="text-center text-gray-500 text-sm">
+            Need help? Contact us at 
+            <a href="mailto:support@bidmart.com" class="text-blue-600 hover:underline font-medium">
+              support@bidmart.com
+            </a>
+          </p>
+        </div>
       </div>
     }
   </div>

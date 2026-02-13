@@ -1,0 +1,104 @@
+<div class="comments-section-black">
+  
+  <!-- Error Message -->
+  @if (errorMessage) {
+    <div class="mb-4 p-3 bg-red-900/30 border-l-4 border-red-500 text-red-400 text-sm rounded">
+      {{ errorMessage }}
+    </div>
+  }
+
+  <!-- Comment Input -->
+  <div class="mb-6">
+    <div class="relative">
+      <textarea
+        [(ngModel)]="newCommentText"
+        placeholder="Share your thoughts..."
+        rows="3"
+        maxlength="500"
+        class="w-full px-4 py-3 bg-gray-900 border-2 border-gray-700 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition"
+        [disabled]="isPostingComment">
+      </textarea>
+      <div class="absolute bottom-2 right-2 text-xs text-gray-500 font-semibold">
+        {{ newCommentText.length }}/500
+      </div>
+    </div>
+    
+    <div class="flex justify-end mt-3">
+      <button
+        (click)="postComment()"
+        [disabled]="isPostingComment || !newCommentText.trim()"
+        class="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition disabled:bg-gray-700 disabled:cursor-not-allowed shadow-lg">
+        @if (isPostingComment) {
+          <span class="flex items-center gap-2">
+            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Posting...
+          </span>
+        } @else {
+          Post Comment
+        }
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoadingComments) {
+    <div class="flex justify-center py-8">
+      <div class="w-10 h-10 border-4 border-gray-700 rounded-full animate-spin border-t-blue-500"></div>
+    </div>
+  }
+
+  <!-- Comments List -->
+  @if (!isLoadingComments) {
+    @if (comments.length > 0) {
+      <div class="space-y-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar-black">
+        @for (comment of comments; track comment.commentId) {
+          <div class="flex gap-3 p-4 bg-gray-900 rounded-lg hover:bg-gray-800 transition border border-gray-800">
+            <!-- User Avatar -->
+            <div class="flex-shrink-0">
+              @if (comment.userProfilePicture) {
+                <img 
+                  [src]="comment.userProfilePicture" 
+                  [alt]="comment.userName"
+                  class="w-11 h-11 rounded-full object-cover border-2 border-gray-700">
+              } @else {
+                <div class="w-11 h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center border-2 border-gray-700">
+                  <span class="text-white font-bold text-sm">{{ getUserInitial(comment.userName) }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- Comment Content -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex-1 min-w-0">
+                  <p class="font-bold text-white text-sm truncate">{{ comment.userName }}</p>
+                  <p class="text-xs text-gray-400">{{ getTimeAgo(comment.createdAt) }}</p>
+                </div>
+                
+                <!-- Delete Button -->
+                @if (isMyComment(comment)) {
+                  <button
+                    (click)="deleteComment(comment.commentId)"
+                    class="text-red-400 hover:text-red-300 transition text-sm flex-shrink-0 px-2">
+                    🗑️
+                  </button>
+                }
+              </div>
+              
+              <p class="mt-2 text-gray-300 text-sm whitespace-pre-wrap break-words leading-relaxed">{{ comment.commentText }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="text-center py-12">
+        <span class="text-5xl block mb-3">💬</span>
+        <p class="text-gray-400 font-semibold">No comments yet</p>
+        <p class="text-gray-600 text-sm mt-1">Start the conversation!</p>
+      </div>
+    }
+  }
+</div>

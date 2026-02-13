@@ -18,16 +18,24 @@
         </a>
         
         @if (isLoggedIn()) {
-          <a routerLink="/stalls" 
-             routerLinkActive="bg-blue-50 text-blue-600"
-             class="px-4 py-2 rounded-lg text-gray-600 hover: bg-gray-100 hover:text-gray-900 transition font-medium">
-            Stalls
-          </a>
           <a routerLink="/dashboard" 
              routerLinkActive="bg-blue-50 text-blue-600"
-             class="px-4 py-2 rounded-lg text-gray-600 hover: bg-gray-100 hover:text-gray-900 transition font-medium">
+             class="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition font-medium">
             Dashboard
           </a>
+
+          <a routerLink="/about" 
+            routerLinkActive="text-blue-600"
+            class="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition font-medium">
+            About
+          </a>
+          
+          <a routerLink="/stalls" 
+             routerLinkActive="bg-blue-50 text-blue-600"
+             class="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition font-medium">
+            Stalls
+          </a>
+          
           <a routerLink="/my-bids" 
              routerLinkActive="bg-blue-50 text-blue-600"
              class="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition font-medium">
@@ -49,11 +57,63 @@
       <!-- Right Section -->
       <div class="flex items-center gap-3">
         @if (isLoggedIn()) {
+          
+          <!-- Notification Bell -->
+          <div class="relative">
+            <button 
+              (click)="toggleNotifications()"
+              class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">
+              <!-- Bell Icon -->
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+              </svg>
+              
+              <!-- Unread Count Badge -->
+              @if (unreadCount() > 0) {
+                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+                  {{ unreadCount() > 9 ? '9+' : unreadCount() }}
+                </span>
+              }
+            </button>
+
+            <!-- Notification Dropdown -->
+            @if (showNotifications()) {
+              <div class="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 max-h-96 overflow-y-auto">
+                <div class="p-4 border-b flex items-center justify-between">
+                  <h3 class="font-bold text-gray-900">Notifications</h3>
+                  <a routerLink="/notifications" (click)="closeNotifications()" 
+                     class="text-sm text-blue-600 hover:underline">
+                    View All
+                  </a>
+                </div>
+                
+                <div class="py-2">
+                  @if (unreadCount() === 0) {
+                    <p class="px-4 py-8 text-center text-gray-500 text-sm">
+                      🔔 No new notifications
+                    </p>
+                  } @else {
+                    <div class="px-4 py-4 text-center">
+                      <p class="text-gray-600 text-sm mb-3">
+                        You have {{ unreadCount() }} unread notification{{ unreadCount() > 1 ? 's' : '' }}
+                      </p>
+                      <a routerLink="/notifications" (click)="closeNotifications()"
+                         class="inline-block px-6 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition">
+                        View All Notifications →
+                      </a>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
           <!-- User Dropdown -->
           <div class="relative">
             <button 
               (click)="toggleDropdown()"
-              class="flex items-center gap-2 px-2 py-1. 5 rounded-xl hover:bg-gray-100 transition focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-gray-100 transition focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <!-- Avatar -->
               <div class="w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold overflow-hidden ring-2 ring-white shadow">
@@ -68,7 +128,7 @@
               <div class="hidden lg:block text-left">
                 <p class="text-sm font-semibold text-gray-900 leading-tight">{{ getUserName() }}</p>
                 <div class="flex items-center gap-1">
-                  <span class="text-xs px-1. 5 py-0.5 rounded-full font-medium" [ngClass]="getRoleBadge().class">
+                  <span class="text-xs px-1.5 py-0.5 rounded-full font-medium" [ngClass]="getRoleBadge().class">
                     {{ getRoleBadge().icon }} {{ getRoleBadge().label }}
                   </span>
                 </div>
@@ -107,7 +167,7 @@
                 @if (isAdmin()) {
                   <div class="py-1 border-b border-gray-100">
                     <a routerLink="/admin" (click)="closeDropdown()" 
-                       class="flex items-center gap-3 px-4 py-2.5 text-purple-600 hover: bg-purple-50 transition">
+                       class="flex items-center gap-3 px-4 py-2.5 text-purple-600 hover:bg-purple-50 transition">
                       <span class="text-lg">👑</span>
                       <div>
                         <span class="font-medium">Admin Dashboard</span>
@@ -130,14 +190,24 @@
                     <span>My Profile</span>
                   </a>
                   <a routerLink="/my-bids" (click)="closeDropdown()" 
-                     class="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover: bg-gray-50 transition">
+                     class="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition">
                     <span class="text-lg">🏷️</span>
                     <span>My Bids</span>
                   </a>
                   <a routerLink="/stalls" (click)="closeDropdown()" 
-                     class="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover: bg-gray-50 transition">
+                     class="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition">
                     <span class="text-lg">🏪</span>
                     <span>Browse Stalls</span>
+                  </a>
+                  <a routerLink="/notifications" (click)="closeDropdown()" 
+                     class="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition">
+                    <span class="text-lg">🔔</span>
+                    <span>Notifications</span>
+                    @if (unreadCount() > 0) {
+                      <span class="ml-auto bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                        {{ unreadCount() }}
+                      </span>
+                    }
                   </a>
                 </div>
 
@@ -145,7 +215,7 @@
                 @if (!isBidder()) {
                   <div class="py-1 border-t border-gray-100">
                     <a routerLink="/bidder-application/status" (click)="closeDropdown()" 
-                       class="flex items-center gap-3 px-4 py-2.5 text-yellow-600 hover: bg-yellow-50 transition">
+                       class="flex items-center gap-3 px-4 py-2.5 text-yellow-600 hover:bg-yellow-50 transition">
                       <span class="text-lg">📋</span>
                       <div>
                         <span class="font-medium">Become a Bidder</span>
@@ -164,7 +234,7 @@
                   </a>
                   <button 
                     (click)="logout()"
-                    class="flex items-center gap-3 px-4 py-2.5 w-full text-left text-red-600 hover: bg-red-50 transition"
+                    class="flex items-center gap-3 px-4 py-2.5 w-full text-left text-red-600 hover:bg-red-50 transition"
                   >
                     <span class="text-lg">🚪</span>
                     <span>Logout</span>
@@ -188,7 +258,7 @@
         <!-- Mobile Menu Button -->
         <button 
           (click)="toggleMobileMenu()"
-          class="md: hidden p-2 rounded-lg hover:bg-gray-100 transition focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition focus:outline-none focus:ring-2 focus:ring-blue-500"
           [attr.aria-expanded]="showMobileMenu()"
           aria-label="Toggle menu"
         >
@@ -243,6 +313,19 @@
             <span class="text-xl">👤</span>
             <span class="font-medium">Profile</span>
           </a>
+          <a routerLink="/notifications" (click)="closeMobileMenu()" 
+             routerLinkActive="bg-blue-50 text-blue-600"
+             class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition">
+            <span class="text-xl">🔔</span>
+            <div class="flex-1 flex items-center justify-between">
+              <span class="font-medium">Notifications</span>
+              @if (unreadCount() > 0) {
+                <span class="bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {{ unreadCount() }}
+                </span>
+              }
+            </div>
+          </a>
           
           <!-- Admin Link (Mobile) -->
           @if (isAdmin()) {
@@ -271,7 +354,7 @@
           <div class="pt-2 mt-2 border-t border-gray-200">
             <button 
               (click)="logout()"
-              class="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-red-600 hover: bg-red-50 transition"
+              class="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-red-600 hover:bg-red-50 transition"
             >
               <span class="text-xl">🚪</span>
               <span class="font-medium">Logout</span>
@@ -296,6 +379,6 @@
 </nav>
 
 <!-- Backdrop -->
-@if (showDropdown()) {
-  <div class="fixed inset-0 z-40" (click)="closeDropdown()"></div>
+@if (showDropdown() || showNotifications()) {
+  <div class="fixed inset-0 z-40" (click)="closeAll()"></div>
 }

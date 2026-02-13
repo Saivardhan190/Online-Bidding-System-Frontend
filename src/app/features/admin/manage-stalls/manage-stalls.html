@@ -103,6 +103,13 @@
                       <p class="text-sm text-gray-500">{{ stall.category }}</p>
                     </div>
                   </div>
+                  <div class="mt-2">
+                    <app-countdown-timer
+                      [startDate]="stall.biddingStart"
+                      [endDate]="stall.biddingEnd"
+                      [status]="stall.status">
+                    </app-countdown-timer>
+                  </div>
 
                   <p class="text-sm text-gray-500 mb-3 flex items-center gap-1">
                     <span>📍</span>
@@ -152,7 +159,7 @@
                     </a>
                     
                     <!-- Edit Button -->
-                    <a [routerLink]="['/admin/stalls/edit', stall. stallId]"
+                    <a [routerLink]="['/admin/stalls/edit', stall.stallId]"
                        class="px-3 py-2 bg-yellow-500 text-white rounded-lg text-sm font-semibold hover:bg-yellow-600 transition flex items-center gap-1">
                       <span>✏️</span>
                     </a>

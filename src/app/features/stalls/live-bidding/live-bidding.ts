@@ -1,32 +1,30 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { interval, Subscription } from 'rxjs';
 import { StallService } from '../../../core/services/stall';
 import { BidService } from '../../../core/services/bid';
-import { CommentService, Comment } from '../../../core/services/comment';
-import { WebSocketService } from '../../../core/services/websocket';
 import { AuthService } from '../../../core/services/auth';
 import { Stall } from '../../../core/models/stall.model';
 import { Bid } from '../../../core/models/bid.model';
 import { User } from '../../../core/models/user.model';
+import { StallComments } from '../components/stall-comments/stall-comments';
 
 @Component({
   selector: 'app-live-bidding',
   standalone: true,
-  imports:  [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, StallComments],
   templateUrl: './live-bidding.html',
-  styleUrls:  ['./live-bidding.scss']
+  styleUrls: ['./live-bidding.scss']
 })
 export class LiveBidding implements OnInit, OnDestroy {
-  stall:  Stall | null = null;
+  stall: Stall | null = null;
   user: User | null = null;
   bidHistory: Bid[] = [];
-  comments: Comment[] = [];
   isLoading = true;
   error = '';
-  activeTab = 'bids'; // 'bids' or 'comments'
+  activeTab = 'bids';
   
   // Bidding
   bidAmount: number = 0;
@@ -35,248 +33,236 @@ export class LiveBidding implements OnInit, OnDestroy {
   bidError = '';
   bidSuccess = '';
   
-  // Comments
-  newComment = '';
-  isPostingComment = false;
-  
   // Timer
   timeRemaining = '';
   timerInterval: any;
   isAuctionEnded = false;
+  isAuctionNotStarted = false;
   
-  // WebSocket
-  private wsSubscription?:  Subscription;
-  private commentSubscription?: Subscription;
+  // Auto-refresh
+  private refreshSubscription?: Subscription;
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
     private stallService: StallService,
     private bidService: BidService,
-    private commentService: CommentService,
-    private wsService: WebSocketService,
     private authService: AuthService
   ) {}
 
   ngOnInit(): void {
     this.user = this.authService.getUser();
     
-    const stallId = this. route.snapshot.paramMap.get('id');
+    const stallId = this.route.snapshot.params['id'] || 
+                    this.route.snapshot.params['stallId'] ||
+                    this.route.snapshot.paramMap.get('id') ||
+                    this.route.snapshot.paramMap.get('stallId');
+    
+    console.log('🔍 Loading stall ID:', stallId);
+    
     if (stallId) {
-      this.loadStall(parseInt(stallId));
-      this.loadComments(parseInt(stallId));
-      this.connectWebSocket(parseInt(stallId));
+      const id = parseInt(stallId);
+      this.loadStall(id);
+      this.loadBidHistory(id);
+      
+      // ✅ Auto-refresh every 2 seconds for real-time updates
+      this.refreshSubscription = interval(2000).subscribe(() => {
+        if (!this.isAuctionEnded && !this.isAuctionNotStarted) {
+          this.loadStall(id, true);
+          this.loadBidHistory(id, true);
+        }
+      });
+    } else {
+      console.error('❌ No stall ID found!');
+      this.error = 'Stall ID not found';
+      this.isLoading = false;
     }
   }
 
   ngOnDestroy(): void {
-    if (this. timerInterval) {
+    if (this.timerInterval) {
       clearInterval(this.timerInterval);
     }
-    if (this.wsSubscription) {
-      this.wsSubscription.unsubscribe();
+    if (this.refreshSubscription) {
+      this.refreshSubscription.unsubscribe();
     }
-    if (this.commentSubscription) {
-      this. commentSubscription.unsubscribe();
-    }
-    this.wsService.disconnect();
   }
 
-  loadStall(stallId: number): void {
-    this.isLoading = true;
+  loadStall(stallId: number, silent: boolean = false): void {
+    if (!silent) this.isLoading = true;
     
     this.stallService.getStallById(stallId).subscribe({
-      next: (stall:  Stall) => {
-        this. stall = stall;
-        this. minBidAmount = (stall.currentHighestBid || stall.basePrice) + 100;
-        this. bidAmount = this.minBidAmount;
-        this. startTimer();
-        this.loadBidHistory(stallId);
-        this.isLoading = false;
+      next: (stall: Stall) => {
+        console.log('✅ Stall loaded:', stall);
+        this.stall = stall;
+        this.minBidAmount = (stall.currentHighestBid || stall.basePrice) + 100;
+        this.bidAmount = this.minBidAmount;
+        
+        if (!this.timerInterval) {
+          this.startTimer();
+        }
+        
+        if (!silent) this.isLoading = false;
       },
-      error: (error:  any) => {
-        console.error('Error loading stall:', error);
+      error: (error: any) => {
+        console.error('❌ Error loading stall:', error);
         this.error = 'Failed to load auction details';
-        this.isLoading = false;
+        if (!silent) this.isLoading = false;
       }
     });
   }
 
-  loadBidHistory(stallId: number): void {
+  loadBidHistory(stallId: number, silent: boolean = false): void {
     this.bidService.getBidHistory(stallId).subscribe({
       next: (bids: Bid[]) => {
-        this.bidHistory = bids. slice(0, 10);
+        console.log('✅ Loaded', bids.length, 'bids');
+        this.bidHistory = bids;
       },
-      error:  (error: any) => {
-        console.error('Error loading bid history:', error);
+      error: (error: any) => {
+        console.error('❌ Error loading bids:', error);
         this.bidHistory = [];
       }
     });
   }
 
-  loadComments(stallId:  number): void {
-    this.commentService.getCommentsByStall(stallId).subscribe({
-      next: (comments:  Comment[]) => {
-        this.comments = comments;
-      },
-      error:  (error: any) => {
-        console.error('Error loading comments:', error);
-        this.comments = [];
-      }
-    });
-  }
-
-  connectWebSocket(stallId: number): void {
-    this.wsService. connect(stallId);
-    
-    this.wsSubscription = this. wsService.getBidUpdates().subscribe({
-      next:  (bid: Bid) => {
-        this. handleNewBid(bid);
-      },
-      error: (error:  any) => {
-        console.error('WebSocket error:', error);
-      }
-    });
-  }
-
-  handleNewBid(bid: Bid): void {
-    if (! this.stall) return;
-    
-    this. stall.currentHighestBid = bid. biddedPrice;
-    this. stall.totalBids = (this.stall. totalBids || 0) + 1;
-    
-    this.minBidAmount = bid.biddedPrice + 100;
-    if (this.bidAmount < this.minBidAmount) {
-      this.bidAmount = this.minBidAmount;
-    }
-    
-    this.bidHistory.unshift(bid);
-    if (this.bidHistory.length > 10) {
-      this.bidHistory.pop();
-    }
-  }
-
   placeBid(): void {
     if (!this.stall || !this.user || this.isBidding) return;
-    
+
     if (this.bidAmount < this.minBidAmount) {
-      this.bidError = `Minimum bid amount is ₹${this. minBidAmount}`;
+      this.bidError = `Minimum bid is ₹${this.minBidAmount}`;
       return;
     }
-    
+
     this.isBidding = true;
     this.bidError = '';
     this.bidSuccess = '';
 
+    // ✅ Correct bid request format matching backend
     const bidRequest = {
       stallId: this.stall.stallId,
-      bidderId: this.user. studentId,
+      bidderId: this.user.studentId,
       biddedPrice: this.bidAmount
     };
 
+    console.log('💰 Placing bid:', bidRequest);
+
     this.bidService.placeBid(bidRequest).subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('✅ Bid placed successfully:', response);
+        this.bidSuccess = '✅ Bid placed successfully!';
         this.isBidding = false;
-        this. bidSuccess = 'Bid placed successfully! ';
-        this. bidAmount = this.minBidAmount + 100;
-        setTimeout(() => this.bidSuccess = '', 3000);
+        
+        // Immediate refresh
+        this.loadStall(this.stall!.stallId, true);
+        this.loadBidHistory(this.stall!.stallId, true);
+        
+        // Update min bid amount
+        this.minBidAmount = this.bidAmount + 100;
+        this.bidAmount = this.minBidAmount;
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          this.bidSuccess = '';
+        }, 3000);
       },
-      error: (error: any) => {
-        this. isBidding = false;
-        this.bidError = error.error?.message || 'Failed to place bid. ';
+      error: (error) => {
+        console.error('❌ Error placing bid:', error);
+        this.bidError = error.error?.message || 'Failed to place bid';
+        this.isBidding = false;
       }
     });
   }
 
-  postComment(): void {
-    if (!this. stall || !this.user || ! this.newComment. trim() || this.isPostingComment) return;
-
-    this.isPostingComment = true;
-
-    this.commentService.addComment({
-      stallId: this.stall.stallId,
-      commentText: this.newComment. trim()
-    }).subscribe({
-      next: (comment: Comment) => {
-        this. comments.unshift(comment);
-        this.newComment = '';
-        this.isPostingComment = false;
-      },
-      error:  (error: any) => {
-        console.error('Error posting comment:', error);
-        this.isPostingComment = false;
-      }
-    });
-  }
-
-  deleteComment(commentId:  number): void {
-    this.commentService.deleteComment(commentId).subscribe({
-      next: () => {
-        this. comments = this.comments.filter(c => c.commentId !== commentId);
-      },
-      error: (error: any) => {
-        console.error('Error deleting comment:', error);
-      }
-    });
-  }
-
-  isMyComment(comment: Comment): boolean {
-    return comment. userId === this.user?. studentId;
+  incrementBid(amount: number): void {
+    this.bidAmount += amount;
+    console.log('➕ Bid amount increased to:', this.bidAmount);
   }
 
   startTimer(): void {
-    if (! this.stall?. biddingEnd) return;
+    if (!this.stall?.biddingEnd) {
+      console.warn('⚠️ No bidding end time');
+      return;
+    }
+    
     this.updateTimer();
     this.timerInterval = setInterval(() => this.updateTimer(), 1000);
   }
 
   updateTimer(): void {
-    if (! this.stall?. biddingEnd) return;
+    if (!this.stall?.biddingEnd || !this.stall?.biddingStart) {
+      this.timeRemaining = 'No time set';
+      return;
+    }
     
-    const endTime = new Date(this.stall. biddingEnd).getTime();
+    const startTime = new Date(this.stall.biddingStart).getTime();
+    const endTime = new Date(this.stall.biddingEnd).getTime();
     const now = new Date().getTime();
+    
+    // Check if auction hasn't started
+    if (now < startTime) {
+      const diff = startTime - now;
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      this.timeRemaining = `Starts in ${hours}h ${minutes}m ${seconds}s`;
+      this.isAuctionNotStarted = true;
+      this.isAuctionEnded = false;
+      return;
+    }
+    
+    // Calculate time remaining
     const diff = endTime - now;
     
     if (diff <= 0) {
-      this.timeRemaining = 'Auction Ended';
+      this.timeRemaining = 'ENDED';
       this.isAuctionEnded = true;
-      clearInterval(this. timerInterval);
+      this.isAuctionNotStarted = false;
+      clearInterval(this.timerInterval);
       return;
     }
     
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math. floor((diff % (1000 * 60)) / 1000);
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
     
     this.timeRemaining = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    this.isAuctionNotStarted = false;
+    this.isAuctionEnded = false;
   }
 
-  incrementBid(amount: number): void {
-    this.bidAmount += amount;
-  }
-
-  formatTime(dateStr: string): string {
-    if (! dateStr) return '';
-    return new Date(dateStr).toLocaleTimeString('en-IN', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  isTimerUrgent(): boolean {
+    if (!this.timeRemaining || this.timeRemaining === 'ENDED' || this.isAuctionNotStarted) {
+      return false;
+    }
+    
+    const parts = this.timeRemaining.split(':');
+    if (parts.length !== 3) return false;
+    
+    const hours = parseInt(parts[0]);
+    const minutes = parseInt(parts[1]);
+    
+    // Show urgent when less than 5 minutes remaining
+    return hours === 0 && minutes < 5;
   }
 
   isMyBid(bid: Bid): boolean {
-    return bid.bidderId === this.user?. studentId;
+    return bid.bidderId === this.user?.studentId;
   }
 
-  getBidAmount(bid: Bid): number {
-    return bid.biddedPrice || 0;
-  }
-
-  getBidderName(bid:  Bid): string {
+  getBidderName(bid: Bid): string {
     if (this.isMyBid(bid)) return 'You';
-    return bid.bidderName || 'Bidder';
+    return bid.bidderName || 'Anonymous';
+  }
+
+  formatTime(dateStr: string): string {
+    if (!dateStr) return '';
+    return new Date(dateStr).toLocaleTimeString('en-IN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
   }
 
   getUserInitial(name: string): string {
-    return name?. charAt(0)?.toUpperCase() || 'U';
+    return name ? name.charAt(0).toUpperCase() : '?';
   }
 }
