@@ -2,54 +2,70 @@ import { Component, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../core/services/auth';
+import { NotificationService } from '../../../core/services/notification.service';
 import { Subscription, filter } from 'rxjs';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports:  [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.scss']
 })
 export class Navbar implements OnInit, OnDestroy {
   showDropdown = signal(false);
   showMobileMenu = signal(false);
+  showNotifications = signal(false);
   isAuthenticated = signal(false);
   currentUser = signal<any>(null);
+  unreadCount = signal(0);
 
-  private routerSubscription?:  Subscription;
+  private routerSubscription?: Subscription;
+  private notificationSubscription?: Subscription;
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
     // Check auth state on init
-    this. checkAuthState();
+    this.checkAuthState();
+    this.loadUnreadCount();
 
     // Re-check auth state on every navigation
-    this. routerSubscription = this.router.events
+    this.routerSubscription = this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(() => {
         this.checkAuthState();
         this.closeDropdown();
         this.closeMobileMenu();
+        this.closeNotifications();
+        this.loadUnreadCount();
+      });
+
+    // Subscribe to real-time notification updates
+    this.notificationSubscription = this.notificationService
+      .getNotificationUpdates()
+      .subscribe(() => {
+        this.loadUnreadCount();
       });
   }
 
   ngOnDestroy(): void {
     this.routerSubscription?.unsubscribe();
+    this.notificationSubscription?.unsubscribe();
   }
 
   private checkAuthState(): void {
-    const token = localStorage. getItem('token');
+    const token = localStorage.getItem('token');
     const userStr = localStorage.getItem('user');
     
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr);
-        this.isAuthenticated. set(true);
+        this.isAuthenticated.set(true);
         this.currentUser.set(user);
       } catch {
         this.isAuthenticated.set(false);
@@ -59,6 +75,24 @@ export class Navbar implements OnInit, OnDestroy {
       this.isAuthenticated.set(false);
       this.currentUser.set(null);
     }
+  }
+
+  loadUnreadCount(): void {
+    if (!this.isAuthenticated()) {
+      this.unreadCount.set(0);
+      return;
+    }
+
+    this.notificationService.getUnreadCount().subscribe({
+      next: (response) => {
+        this.unreadCount.set(response.count);
+        console.log('🔔 Unread notifications:', response.count);
+      },
+      error: (error) => {
+        console.error('❌ Error loading unread count:', error);
+        this.unreadCount.set(0);
+      }
+    });
   }
 
   // Auth checks
@@ -77,7 +111,7 @@ export class Navbar implements OnInit, OnDestroy {
 
   isAdmin(): boolean {
     const user = this.getUser();
-    return user?. role === 'ADMIN';
+    return user?.role === 'ADMIN';
   }
 
   // User info helpers
@@ -94,7 +128,7 @@ export class Navbar implements OnInit, OnDestroy {
   }
 
   getUserEmail(): string {
-    const user = this. getUser();
+    const user = this.getUser();
     return user?.studentEmail || '';
   }
 
@@ -110,11 +144,11 @@ export class Navbar implements OnInit, OnDestroy {
   }
 
   getUserRole(): string {
-    const user = this. getUser();
+    const user = this.getUser();
     return user?.role || 'USER';
   }
 
-  getRoleBadge(): { class: string; label: string; icon:  string } {
+  getRoleBadge(): { class: string; label: string; icon: string } {
     const role = this.getUserRole();
     switch (role) {
       case 'ADMIN':
@@ -130,12 +164,14 @@ export class Navbar implements OnInit, OnDestroy {
   goToHome(): void {
     this.closeMobileMenu();
     this.closeDropdown();
+    this.closeNotifications();
     this.router.navigate(['/home']);
   }
 
   goToAdmin(): void {
     this.closeMobileMenu();
     this.closeDropdown();
+    this.closeNotifications();
     this.router.navigate(['/admin']);
   }
 
@@ -143,18 +179,20 @@ export class Navbar implements OnInit, OnDestroy {
   toggleDropdown(): void {
     this.showDropdown.update(v => !v);
     if (this.showDropdown()) {
-      this. showMobileMenu.set(false);
+      this.showMobileMenu.set(false);
+      this.showNotifications.set(false);
     }
   }
 
   closeDropdown(): void {
-    this.showDropdown. set(false);
+    this.showDropdown.set(false);
   }
 
   toggleMobileMenu(): void {
-    this. showMobileMenu. update(v => ! v);
+    this.showMobileMenu.update(v => !v);
     if (this.showMobileMenu()) {
       this.showDropdown.set(false);
+      this.showNotifications.set(false);
     }
   }
 
@@ -162,14 +200,28 @@ export class Navbar implements OnInit, OnDestroy {
     this.showMobileMenu.set(false);
   }
 
+  toggleNotifications(): void {
+    this.showNotifications.update(v => !v);
+    if (this.showNotifications()) {
+      this.showDropdown.set(false);
+      this.showMobileMenu.set(false);
+    }
+  }
+
+  closeNotifications(): void {
+    this.showNotifications.set(false);
+  }
+
   closeAll(): void {
     this.closeDropdown();
     this.closeMobileMenu();
+    this.closeNotifications();
   }
 
   // Auth actions
   logout(): void {
     this.closeAll();
+    this.unreadCount.set(0);
     this.authService.logout();
   }
 }

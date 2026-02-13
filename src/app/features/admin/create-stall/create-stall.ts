@@ -73,7 +73,7 @@ export class CreateStall {
       const reader = new FileReader();
       reader.onload = () => {
         this. imagePreview = reader.result as string;
-        this.stallForm.patchValue({ image: this. imagePreview });
+        this.stallForm.patchValue({ image: this.imagePreview });
         this.errorMessage = '';
       };
       reader. readAsDataURL(file);
@@ -95,7 +95,7 @@ export class CreateStall {
 
     // Validate dates
     const startDate = new Date(this.stallForm.value.biddingStart);
-    const endDate = new Date(this. stallForm.value. biddingEnd);
+    const endDate = new Date(this.stallForm.value.biddingEnd);
     
     if (endDate <= startDate) {
       this.errorMessage = 'End date must be after start date';
@@ -125,8 +125,8 @@ export class CreateStall {
       basePrice: basePrice,
       originalPrice: originalPrice,  // ✅ Required field
       maxBidders: parseInt(this.stallForm.value.maxBidders) || 10,
-      biddingStartTime: this.stallForm.value.biddingStart,
-      biddingEndTime: this.stallForm.value.biddingEnd
+      biddingStart: this.stallForm.value.biddingStart,
+      biddingEnd: this.stallForm.value.biddingEnd
     };
 
     // Only include image if present and not too large

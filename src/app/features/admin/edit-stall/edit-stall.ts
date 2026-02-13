@@ -177,8 +177,8 @@ export class EditStall implements OnInit {
       basePrice: basePrice,
       originalPrice: originalPrice,
       maxBidders: parseInt(this.stallForm.value.maxBidders) || 10,
-      biddingStartTime: this.stallForm.value.biddingStart,
-      biddingEndTime: this.stallForm.value.biddingEnd
+      biddingStart: this.stallForm.value.biddingStart,
+      biddingEnd: this.stallForm.value.biddingEnd
     };
 
     const imageData = this.stallForm.value.image;

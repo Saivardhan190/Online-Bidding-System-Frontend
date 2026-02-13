@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { StallService } from '../../../core/services/stall';
 import { Stall } from '../../../core/models/stall.model';
+import { CountdownTimer } from "../../../shared/components/countdown-timer/countdown-timer";
 
 @Component({
   selector: 'app-manage-stalls',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, CountdownTimer],
   templateUrl: './manage-stalls.html',
   styleUrls: ['./manage-stalls.scss']
 })

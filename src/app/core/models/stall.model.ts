@@ -7,17 +7,18 @@ export interface Stall {
   category: string;
   image: string | null;
   basePrice: number;
-  originalPrice?: number;
-  maxBidders?: number;
+  originalPrice: number;
   currentHighestBid: number;
   totalBids: number;
-  status: StallStatus;
+  maxBidders: number;
+  status: 'AVAILABLE' | 'ACTIVE' | 'CLOSED';
   biddingStart: string | null;
   biddingEnd: string | null;
   createdAt: string;
-  winner?: {
+  winner?: {  // ✅ Add winner info
     studentId: number;
     studentName: string;
+    studentEmail: string;
   };
 }
 

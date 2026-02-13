@@ -17,6 +17,9 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
+            "define": {
+              "global": "window"
+            },
             "browser": "src/main.ts",
             "polyfills": [
               "zone.js"

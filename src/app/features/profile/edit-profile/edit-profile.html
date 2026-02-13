@@ -3,7 +3,7 @@
     
     <!-- Header -->
     <div class="mb-8">
-      <a routerLink="/profile" class="text-blue-600 hover: underline mb-2 inline-block">← Back to Profile</a>
+      <a routerLink="/profile" class="text-blue-600 hover:underline mb-2 inline-block">← Back to Profile</a>
       <h1 class="text-3xl font-bold text-gray-900">Edit Profile</h1>
       <p class="text-gray-600 mt-1">Update your account information</p>
     </div>
@@ -12,14 +12,14 @@
     <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
       <div class="flex border-b">
         <button 
-          (click)="activeTab = 'profile'"
+          (click)="setActiveTab('profile')"
           [class]="activeTab === 'profile' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'"
           class="flex-1 py-4 font-medium hover:bg-gray-50 transition"
         >
           👤 Profile Info
         </button>
         <button 
-          (click)="activeTab = 'password'"
+          (click)="setActiveTab('password')"
           [class]="activeTab === 'password' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'"
           class="flex-1 py-4 font-medium hover:bg-gray-50 transition"
         >
@@ -30,98 +30,199 @@
       <div class="p-6">
         <!-- Profile Tab -->
         @if (activeTab === 'profile') {
+          <!-- Success Message -->
           @if (successMessage) {
             <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-r-lg">
               {{ successMessage }}
             </div>
           }
 
+          <!-- Error Message -->
           @if (errorMessage) {
             <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-lg">
               {{ errorMessage }}
             </div>
           }
 
+          <!-- Profile Incomplete Warning -->
+          @if (isProfileIncomplete) {
+            <div class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800 rounded-r-lg">
+              <p class="font-medium">⚠️ Complete Your Profile</p>
+              <p class="text-sm mt-1">Please fill in all required fields to access all features of the platform.</p>
+            </div>
+          }
+
           <form [formGroup]="profileForm" (ngSubmit)="onProfileSubmit()">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              <!-- ✅ College ID Field -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  College ID *
+                  @if (profileForm.get('collageId')?.disabled) {
+                    <span class="text-gray-500 text-xs ml-1">(Cannot be changed)</span>
+                  }
+                </label>
+                <input 
+                  type="text" 
+                  formControlName="collageId" 
+                  class="input-field uppercase"
+                  [class.bg-gray-100]="profileForm.get('collageId')?.disabled"
+                  placeholder="e.g., ABC12345"
+                  maxlength="14"
+                >
+                @if (isFieldInvalid('collageId')) {
+                  <p class="text-red-500 text-sm mt-1">{{ getFieldError('collageId') }}</p>
+                }
+                @if (!profileForm.get('collageId')?.disabled) {
+                  <p class="text-gray-500 text-xs mt-1">6-14 uppercase letters/numbers (e.g., ABC12345)</p>
+                }
+              </div>
+
               <!-- Full Name -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                <input type="text" formControlName="studentName" class="input-field">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                <input 
+                  type="text" 
+                  formControlName="studentName" 
+                  class="input-field"
+                  placeholder="Enter your full name"
+                >
+                @if (isFieldInvalid('studentName')) {
+                  <p class="text-red-500 text-sm mt-1">{{ getFieldError('studentName') }}</p>
+                }
+              </div>
+
+              <!-- Email (Read-only) -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                  <span class="text-gray-500 text-xs ml-1">(Cannot be changed)</span>
+                </label>
+                <input 
+                  type="email" 
+                  [value]="user?.studentEmail" 
+                  class="input-field bg-gray-100" 
+                  readonly
+                >
               </div>
 
               <!-- Phone -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                <input type="tel" formControlName="phone" class="input-field">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                <input 
+                  type="tel" 
+                  formControlName="phone" 
+                  class="input-field"
+                  placeholder="9876543210"
+                  maxlength="10"
+                >
+                @if (isFieldInvalid('phone')) {
+                  <p class="text-red-500 text-sm mt-1">{{ getFieldError('phone') }}</p>
+                }
               </div>
 
               <!-- Department -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Department *</label>
                 <select formControlName="department" class="input-field">
-                  <option value="CSE">Computer Science & Engineering</option>
-                  <option value="ECE">Electronics & Communication</option>
-                  <option value="EEE">Electrical & Electronics</option>
-                  <option value="MECH">Mechanical Engineering</option>
-                  <option value="CIVIL">Civil Engineering</option>
-                  <option value="IT">Information Technology</option>
-                  <option value="MBA">MBA</option>
-                  <option value="OTHER">Other</option>
+                  <option value="">Select Department</option>
+                  @for (dept of departments; track dept.value) {
+                    <option [value]="dept.value">{{ dept.label }}</option>
+                  }
                 </select>
+                @if (isFieldInvalid('department')) {
+                  <p class="text-red-500 text-sm mt-1">{{ getFieldError('department') }}</p>
+                }
               </div>
 
               <!-- Year -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Year</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Year *</label>
                 <select formControlName="year" class="input-field">
+                  <option value="">Select Year</option>
                   <option [value]="1">1st Year</option>
                   <option [value]="2">2nd Year</option>
                   <option [value]="3">3rd Year</option>
                   <option [value]="4">4th Year</option>
                 </select>
+                @if (isFieldInvalid('year')) {
+                  <p class="text-red-500 text-sm mt-1">{{ getFieldError('year') }}</p>
+                }
               </div>
 
               <!-- Gender -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Gender *</label>
                 <select formControlName="gender" class="input-field">
+                  <option value="">Select Gender</option>
                   <option value="MALE">Male</option>
                   <option value="FEMALE">Female</option>
                   <option value="OTHER">Other</option>
                 </select>
+                @if (isFieldInvalid('gender')) {
+                  <p class="text-red-500 text-sm mt-1">{{ getFieldError('gender') }}</p>
+                }
               </div>
 
-              <!-- Address -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                <input type="text" formControlName="address" class="input-field" placeholder="Optional">
+              <!-- Address (Full Width) -->
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Address (Optional)</label>
+                <textarea 
+                  formControlName="address" 
+                  class="input-field" 
+                  rows="3"
+                  placeholder="Enter your complete address"
+                ></textarea>
               </div>
             </div>
 
-            <div class="mt-6">
-              <button type="submit" [disabled]="profileForm.invalid || isLoading" class="btn-primary">
+            <!-- Submit Button -->
+            <div class="mt-6 flex gap-3">
+              <button 
+                type="submit" 
+                [disabled]="profileForm.invalid || isLoading" 
+                class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 @if (isLoading) {
+                  <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
                   Saving...
                 } @else {
-                  Save Changes
+                  💾 Save Changes
                 }
               </button>
+
+              <a routerLink="/profile" class="btn-outline">
+                Cancel
+              </a>
             </div>
           </form>
         }
 
         <!-- Password Tab -->
         @if (activeTab === 'password') {
+          <!-- Success Message -->
           @if (passwordSuccess) {
             <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-r-lg">
               {{ passwordSuccess }}
             </div>
           }
 
+          <!-- Error Message -->
           @if (passwordError) {
             <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-lg">
               {{ passwordError }}
+            </div>
+          }
+
+          <!-- OAuth User Warning -->
+          @if (isOAuthUser) {
+            <div class="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 text-blue-800 rounded-r-lg">
+              <p class="font-medium">🔐 Google Account</p>
+              <p class="text-sm mt-1">You signed in with Google. Password changes must be done through your Google account settings.</p>
             </div>
           }
 
@@ -130,28 +231,51 @@
               <!-- Current Password -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
-                <input type="password" formControlName="oldPassword" class="input-field">
+                <input 
+                  type="password" 
+                  formControlName="currentPassword" 
+                  class="input-field"
+                  placeholder="Enter current password"
+                >
               </div>
 
               <!-- New Password -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
-                <input type="password" formControlName="newPassword" class="input-field" placeholder="Min 8 characters">
+                <input 
+                  type="password" 
+                  formControlName="newPassword" 
+                  class="input-field" 
+                  placeholder="Min 8 characters"
+                >
               </div>
 
               <!-- Confirm Password -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
-                <input type="password" formControlName="confirmPassword" class="input-field">
+                <input 
+                  type="password" 
+                  formControlName="confirmPassword" 
+                  class="input-field"
+                  placeholder="Re-enter new password"
+                >
               </div>
             </div>
 
             <div class="mt-6">
-              <button type="submit" [disabled]="passwordForm. invalid || isPasswordLoading" class="btn-primary">
+              <button 
+                type="submit" 
+                [disabled]="passwordForm.invalid || isPasswordLoading || isOAuthUser" 
+                class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 @if (isPasswordLoading) {
+                  <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
                   Changing...
                 } @else {
-                  Change Password
+                  🔒 Change Password
                 }
               </button>
             </div>
